@@ -111,7 +111,7 @@ class MainActivity : Activity() {
 
         val root = FrameLayout(this)
         val wallpaper = ImageView(this).apply {
-            setImageResource(R.drawable.anime_sakura_wallpaper)
+            setImageResource(R.drawable.anime_sakura_wallpaper_hd)
             scaleType = ImageView.ScaleType.CENTER_CROP
             contentDescription = "Ziyana TV night theme background"
         }
