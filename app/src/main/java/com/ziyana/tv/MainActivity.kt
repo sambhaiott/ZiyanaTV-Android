@@ -183,24 +183,34 @@ class MainActivity : Activity() {
             if (strokeColor != 0) setStroke(dp(1), strokeColor)
         }
 
+    private fun glossySurface(top: Int, bottom: Int, radius: Int, stroke: Int = 0x557D7564): GradientDrawable =
+        GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+            intArrayOf(0x24FFFFFF, top, bottom)).apply {
+            cornerRadius = dp(radius).toFloat()
+            if (stroke != 0) setStroke(dp(1), stroke)
+        }
+
     private fun focusStyle(view: View, radius: Int, normal: Int, focused: Int) {
         view.isFocusable = true
         view.isClickable = true
         view.setOnFocusChangeListener { v, hasFocus ->
-            // Clear focus target for TV remote navigation.
-            v.background = panel(
-                if (hasFocus) focused else normal,
+            val surface = if (hasFocus) focused else normal
+            v.background = glossySurface(
+                surface,
+                if (hasFocus) 0xFF26231D.toInt() else 0xFF17191D.toInt(),
                 radius,
                 if (hasFocus) 0xFFE8D8B8.toInt() else 0x557D7564
             )
             v.animate().cancel()
             v.animate()
-                .scaleX(if (hasFocus) 1.075f else 1f)
-                .scaleY(if (hasFocus) 1.075f else 1f)
-                .translationZ(if (hasFocus) dp(12).toFloat() else 0f)
-                .setDuration(155)
+                .scaleX(if (hasFocus) 1.055f else 1f)
+                .scaleY(if (hasFocus) 1.055f else 1f)
+                .alpha(if (hasFocus) 1f else 0.97f)
+                .translationZ(if (hasFocus) dp(10).toFloat() else 0f)
+                .setDuration(215)
+                .setInterpolator(android.view.animation.DecelerateInterpolator())
                 .start()
-            v.elevation = if (hasFocus) dp(12).toFloat() else 0f
+            v.elevation = if (hasFocus) dp(10).toFloat() else 0f
         }
     }
 
@@ -229,8 +239,8 @@ class MainActivity : Activity() {
                 setPadding(dp(13), 0, dp(5), 0)
                 isFocusable = true
                 isClickable = true
-                background = panel(if (selected == name) 0xFF4A463D.toInt() else 0x332A2A2A, 17,
-                    if (selected == name) 0xFFE5D2A9.toInt() else 0)
+                background = glossySurface(if (selected == name) 0xFF5A5548.toInt() else 0x6636383B,
+                    0xFF17191D.toInt(), 17, if (selected == name) 0xFFE5D2A9.toInt() else 0x557D7564)
                 setOnClickListener { navigate(name) }
                 setOnFocusChangeListener { v, hasFocus ->
                     v.background = panel(if (hasFocus || selected == name) 0xFF4A463D.toInt() else 0x332A2A2A,
@@ -260,7 +270,8 @@ class MainActivity : Activity() {
         }
         content.alpha = 0f
         content.translationY = dp(9).toFloat()
-        content.animate().alpha(1f).translationY(0f).setDuration(190).start()
+        content.animate().alpha(1f).translationY(0f)
+            .setDuration(245).setInterpolator(android.view.animation.DecelerateInterpolator()).start()
     }
 
     private fun heading(title: String, subtitle: String? = null) {
@@ -288,7 +299,7 @@ class MainActivity : Activity() {
         clock = label("", 13f, 0xFFFFFFFF.toInt(), true).apply {
             gravity = Gravity.CENTER
             setPadding(dp(12), dp(8), dp(12), dp(8))
-            background = panel(0xC016181C.toInt(), 15, 0x887C766A.toInt())
+            background = glossySurface(0xD02E3035.toInt(), 0xC016181C.toInt(), 15, 0x887C766A.toInt())
             elevation = dp(3).toFloat()
         }
         clockRow.addView(clock)
@@ -318,7 +329,7 @@ class MainActivity : Activity() {
             setColorFilter(Color.WHITE)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
             contentDescription = description
-            background = panel(0xC016181C.toInt(), 10, 0x887C766A.toInt())
+            background = glossySurface(0xD02E3035.toInt(), 0xC016181C.toInt(), 10, 0x887C766A.toInt())
             isFocusable = true
             isClickable = true
             setPadding(dp(7), dp(5), dp(7), dp(5))
@@ -390,9 +401,7 @@ class MainActivity : Activity() {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
-            background = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-                intArrayOf(0xE92B2C30.toInt(), 0xE916181C.toInt()))
-                .apply { cornerRadius = dp(22).toFloat(); setStroke(dp(1), 0x557D7769) }
+            background = glossySurface(0xE93B3D42.toInt(), 0xE916181C.toInt(), 22, 0x667D7769)
             isFocusable = true
             isClickable = true
             clipChildren = false
@@ -401,9 +410,7 @@ class MainActivity : Activity() {
             setOnLongClickListener { showAppOptions(info); true }
         }
         val iconPlate = FrameLayout(this).apply {
-            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                intArrayOf(0xFF33343A.toInt(), 0xFF1D1F24.toInt()))
-                .apply { cornerRadius = dp(18).toFloat(); setStroke(dp(1), 0x667D7769) }
+            background = glossySurface(0xFF41434A.toInt(), 0xFF1D1F24.toInt(), 18, 0x667D7769)
         }
         iconPlate.addView(ImageView(this).apply {
             setImageDrawable(info.loadIcon(packageManager))
@@ -525,9 +532,7 @@ class MainActivity : Activity() {
                 orientation = LinearLayout.VERTICAL
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(dp(13), dp(9), dp(8), dp(8))
-                background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                    intArrayOf(colors[i], 0xFF17191D.toInt()))
-                    .apply { cornerRadius = dp(17).toFloat(); setStroke(dp(1), 0x557D7564) }
+                background = glossySurface(colors[i], 0xFF17191D.toInt(), 17, 0x667D7564)
                 isFocusable = true
                 isClickable = true
                 focusStyle(this, 17, colors[i], 0xFF58458C.toInt())
