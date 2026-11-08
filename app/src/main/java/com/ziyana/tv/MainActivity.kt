@@ -161,8 +161,6 @@ class MainActivity : Activity() {
             nav.addView(item, lp)
         }
         nav.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
-        nav.addView(label("✧  PREMIUM TV", 9f, 0xFFB8A9D7.toInt(), true))
-        nav.addView(label("4K  •  GOOGLE TV", 9f, 0xFFAAA3C8.toInt(), true))
     }
 
     private fun navigate(name: String) {
@@ -196,30 +194,19 @@ class MainActivity : Activity() {
         val top = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, dp(4), 0, dp(12))
         }
-        top.addView(label("YOUR ENTERTAINMENT SPACE", 10f, 0xFFBDA8E7.toInt(), true))
+        top.addView(label("ZIYANA", 18f, Color.WHITE, true))
         top.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
-        top.addView(label("⌕   Search     ◉   ", 12f, 0xFFECE5FF.toInt(), true).apply {
-            isFocusable = true
-            setOnClickListener { navigate("Search") }
-        })
+        top.addView(actionButton("⌕", false) { navigate("Search") },
+            LinearLayout.LayoutParams(dp(44), dp(40)))
         clock = label("", 12f, 0xFFF4EFFF.toInt(), true)
-        top.addView(clock)
+        top.addView(clock.apply { setPadding(dp(16), 0, 0, 0) })
         content.addView(top)
-
-        content.addView(heroCard(), LinearLayout.LayoutParams(-1, dp(272)))
-
-        heading("Your Apps", "Quick access to apps installed on this TV")
+        heading("Installed apps")
         addInstalledAppsRow()
-        
-        heading("Anime & Streaming", "Launch streaming apps already installed on your TV")
-        addAnimeAppsRow()
-
-        heading("Explore", "Find something good to watch")
-        addFeatureTiles(listOf("Anime", "Movies", "Series", "Watchlist"))
-
-        heading("Quick Launch", "Your TV, one click away")
-        addQuickActions()
+        content.addView(actionButton("VIEW ALL APPS  ›", true) { navigate("Apps") },
+            LinearLayout.LayoutParams(dp(170), dp(42)).apply { topMargin = dp(18) })
     }
 
     private fun heroCard(): View {
@@ -390,7 +377,7 @@ class MainActivity : Activity() {
     }
 
     private fun showAppsPage() {
-        clearPage("All Apps", "Choose an app using your TV remote")
+        clearPage("All apps  ·  ${getApps().size}")
         val apps = getApps()
         if (apps.isEmpty()) {
             content.addView(label("No TV apps are visible. Install apps from Google Play Store.", 15f, muted))
@@ -416,15 +403,18 @@ class MainActivity : Activity() {
 
     @Suppress("DEPRECATION")
     private fun getApps(): List<android.content.pm.ResolveInfo> {
-        val flags = android.content.pm.PackageManager.MATCH_DEFAULT_ONLY
+        // Query both Android TV and standard Android launchable activities.
+        // QUERY_ALL_PACKAGES prevents Android 11+ package visibility hiding apps.
         val leanback = packageManager.queryIntentActivities(
-            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER), flags)
+            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER), 0)
         val standard = packageManager.queryIntentActivities(
-            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), flags)
-        return (leanback + standard)
+            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), 0)
+        val combined = (leanback + standard)
             .filter { it.activityInfo != null && it.activityInfo.packageName != packageName }
-            .distinctBy { it.activityInfo.packageName }
-            .sortedBy { it.loadLabel(packageManager).toString().lowercase(Locale.getDefault()) }
+            .distinctBy { it.activityInfo.packageName + "/" + it.activityInfo.name }
+        return combined.sortedBy {
+            it.loadLabel(packageManager).toString().trim().lowercase(Locale.getDefault())
+        }
     }
 
     private fun launchActivity(info: android.content.pm.ResolveInfo) {
