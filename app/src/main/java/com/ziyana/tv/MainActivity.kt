@@ -220,11 +220,18 @@ class MainActivity : Activity() {
 
     private fun newAppRow() = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
 
-    private fun getApps(): List<android.content.pm.ResolveInfo> =
-        packageManager.queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER), 0)
+    @Suppress("DEPRECATION")
+    private fun getApps(): List<android.content.pm.ResolveInfo> {
+        val flags = android.content.pm.PackageManager.MATCH_DEFAULT_ONLY
+        val leanback = packageManager.queryIntentActivities(
+            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER), flags)
+        val standard = packageManager.queryIntentActivities(
+            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), flags)
+        return (leanback + standard)
             .filter { it.activityInfo != null && it.activityInfo.packageName != packageName }
             .distinctBy { it.activityInfo.packageName }
             .sortedBy { it.loadLabel(packageManager).toString().lowercase(Locale.getDefault()) }
+    }
 
     private fun launchActivity(info: android.content.pm.ResolveInfo) {
         try { startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER).setClassName(info.activityInfo.packageName, info.activityInfo.name)) }
