@@ -116,7 +116,7 @@ class MobileActivity : Activity() {
             setHintTextColor(muted)
             setTextColor(Color.WHITE)
             textSize = 14f
-            singleLine = true
+            setSingleLine(true)
             setPadding(dp(16), 0, dp(16), 0)
             background = surface(0xB82A2A28.toInt(), 0xD817181D.toInt(), 16)
             setText(query)
