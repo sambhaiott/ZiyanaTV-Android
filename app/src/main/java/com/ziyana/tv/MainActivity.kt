@@ -182,14 +182,16 @@ class MainActivity : Activity() {
     // Use the same deep charcoal-to-warm-black palette as the left navigation rail.
     private fun panel(color: Int, radius: Int, strokeColor: Int = 0): GradientDrawable =
         GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-            intArrayOf(0xF20B0C10.toInt(), 0xEA201B18.toInt(), 0xE82D251C.toInt())).apply {
+            intArrayOf(color, 0xFF171513.toInt())).apply {
             cornerRadius = dp(radius).toFloat()
             if (strokeColor != 0) setStroke(dp(1), strokeColor)
         }
 
+    // Respect each component's own colors so focus, cards and controls keep their
+    // intended champagne/charcoal contrast instead of collapsing to one flat shade.
     private fun glossySurface(top: Int, bottom: Int, radius: Int, stroke: Int = 0x557D7564): GradientDrawable =
         GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-            intArrayOf(0xF20B0C10.toInt(), 0xEA201B18.toInt(), 0xE82D251C.toInt())).apply {
+            intArrayOf(top, bottom)).apply {
             cornerRadius = dp(radius).toFloat()
             if (stroke != 0) setStroke(dp(1), stroke)
         }
@@ -877,9 +879,47 @@ class MainActivity : Activity() {
             .setNegativeButton("Close", null).show()
     }
 
+    private fun showControlCenter() {
+        val panel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(18), dp(22), dp(18))
+            background = glossySurface(0xF02B2925.toInt(), 0xF00F1013.toInt(), 22, 0x99A58A63.toInt())
+        }
+        panel.addView(label("Control Center", 22f, Color.WHITE, true))
+        panel.addView(label("Quick access to your TV controls", 12f, muted).apply {
+            setPadding(0, dp(3), 0, dp(12))
+        })
+        val controls: List<Pair<String, () -> Unit>> = listOf(
+            "Wi-Fi & Network" to { openSystemPanel(android.provider.Settings.ACTION_WIFI_SETTINGS) },
+            "Display & Brightness" to { openSystemPanel(android.provider.Settings.ACTION_DISPLAY_SETTINGS) },
+            "Sound & Audio" to { openSystemPanel(android.provider.Settings.ACTION_SOUND_SETTINGS) },
+            "Date & Time" to { openSystemPanel(android.provider.Settings.ACTION_DATE_SETTINGS) },
+            "Android System Settings" to { openSystemPanel(android.provider.Settings.ACTION_SETTINGS) },
+            "Accessibility" to { openSystemPanel(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS) }
+        )
+        controls.forEach { (name, action) ->
+            panel.addView(actionButton(name, false, action),
+                LinearLayout.LayoutParams(dp(330), dp(48)).apply { topMargin = dp(7) })
+        }
+        val dialog = AlertDialog.Builder(this).setView(panel)
+            .setNegativeButton("Close", null).create()
+        dialog.show()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+    }
+
+    private fun openPlayStore() {
+        try {
+            val intent = packageManager.getLeanbackLaunchIntentForPackage("com.android.vending")
+                ?: packageManager.getLaunchIntentForPackage("com.android.vending")
+            if (intent != null) startActivity(intent) else toast("Google Play Store is not available on this TV")
+        } catch (_: Exception) { toast("Google Play Store is not available on this TV") }
+    }
+
     private fun showSettings() {
         clearPage("Settings", "Launcher and device controls")
         val options: List<Pair<String, () -> Unit>> = listOf(
+            "Control Center" to { showControlCenter() },
+            "Google Play Store" to { openPlayStore() },
             "Android system settings" to { openSystemPanel(android.provider.Settings.ACTION_SETTINGS) },
             "Network / Wi-Fi settings" to { openSystemPanel(android.provider.Settings.ACTION_WIFI_SETTINGS) },
             "Display settings" to { openSystemPanel(android.provider.Settings.ACTION_DISPLAY_SETTINGS) },
