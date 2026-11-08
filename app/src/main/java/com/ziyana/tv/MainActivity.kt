@@ -302,7 +302,7 @@ class MainActivity : Activity() {
         clock = label("", 13f, 0xFFFFFFFF.toInt(), true).apply {
             gravity = Gravity.CENTER
             setPadding(dp(12), dp(8), dp(12), dp(8))
-            background = glossySurface(0xD02E3035.toInt(), 0xC016181C.toInt(), 15, 0x887C766A.toInt())
+            background = glossySurface(0xD03A342B.toInt(), 0xC0161512.toInt(), 15, 0x887D6749.toInt())
             elevation = dp(3).toFloat()
         }
         clockRow.addView(clock)
@@ -332,7 +332,7 @@ class MainActivity : Activity() {
             setColorFilter(Color.WHITE)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
             contentDescription = description
-            background = glossySurface(0xD02E3035.toInt(), 0xC016181C.toInt(), 10, 0x887C766A.toInt())
+            background = glossySurface(0xD03A342B.toInt(), 0xC0161512.toInt(), 10, 0x887D6749.toInt())
             isFocusable = true
             isClickable = true
             setPadding(dp(7), dp(5), dp(7), dp(5))
@@ -437,11 +437,11 @@ class MainActivity : Activity() {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
-            background = panel(0xE91B1A38.toInt(), 17, 0x667D6AAE)
+            background = glossySurface(0xFF393630.toInt(), 0xFF171513.toInt(), 17, 0x667D6749)
             isFocusable = true
             isClickable = true
             clipChildren = false
-            focusStyle(this, 17, 0xE91B1A38.toInt(), 0xFF6A50B5.toInt())
+            focusStyle(this, 17, 0xFF25231F.toInt(), 0xFF705B3B.toInt())
             setOnClickListener { launchActivity(info) }
             setOnLongClickListener { showAppOptions(info); true }
         }
@@ -528,7 +528,7 @@ class MainActivity : Activity() {
 
     private fun addFeatureTiles(names: List<String>) {
         val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        val colors = intArrayOf(0xFF393A3C.toInt(), 0xFF343A40.toInt(), 0xFF3B3834.toInt(), 0xFF39383F.toInt())
+        val colors = intArrayOf(0xFF514633.toInt(), 0xFF38332B.toInt(), 0xFF34302B.toInt(), 0xFF40382E.toInt())
         val symbols = listOf("✿", "▣", "▶", "♡")
         names.forEachIndexed { i, name ->
             val tile = LinearLayout(this).apply {
