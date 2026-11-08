@@ -273,20 +273,28 @@ class MainActivity : Activity() {
         content.addView(block, lp)
     }
 
-    private fun showHome() {
-        content.removeAllViews()
-
-        // Minimal status bar: keep the Home canvas free of duplicate branding and search controls.
+    private fun addStatusHeader() {
+        // Persistent top-right clock/date on every launcher page.
         val top = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             setPadding(dp(2), dp(2), dp(2), dp(12))
         }
-        top.addView(label("GOOD TO SEE YOU", 11f, 0xFFE8DDFB.toInt(), true))
         top.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
-        clock = label("", 12f, 0xFFF4EFFF.toInt(), true)
+        clock = label("", 15f, 0xFFFFFFFF.toInt(), true).apply {
+            gravity = Gravity.CENTER
+            setPadding(dp(14), dp(9), dp(14), dp(9))
+            background = panel(0xB91A1733.toInt(), 18, 0x887F6EB1.toInt())
+            elevation = dp(3).toFloat()
+        }
         top.addView(clock)
-        content.addView(top)
+        content.addView(top, LinearLayout.LayoutParams(-1, -2))
+        clock.text = SimpleDateFormat("h:mm a  •  EEE, MMM d", Locale.getDefault()).format(Date())
+    }
+
+    private fun showHome() {
+        content.removeAllViews()
+        addStatusHeader()
 
         // Keep one permanent full-screen anime wallpaper; no second hero image or slideshow.
         content.addView(View(this), LinearLayout.LayoutParams(1, dp(20)))
@@ -526,6 +534,7 @@ class MainActivity : Activity() {
 
     private fun clearPage(title: String, subtitle: String? = null) {
         content.removeAllViews()
+        addStatusHeader()
         content.addView(label(title, 28f, Color.WHITE, true).apply {
             setPadding(0, dp(8), 0, dp(4))
         })
