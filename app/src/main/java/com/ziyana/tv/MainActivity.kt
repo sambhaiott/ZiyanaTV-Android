@@ -243,7 +243,7 @@ class MainActivity : Activity() {
             setPadding(dp(25), dp(22), dp(10), dp(18))
         }
         copy.addView(label("ZIYANA  •  ANIME NIGHT  •  4K", 10f, 0xFFF0BFFF.toInt(), true))
-        copy.addView(label("Moonlit\\nSakura", 34f, Color.WHITE, true).apply {
+        copy.addView(label("Moonlit\nSakura", 34f, Color.WHITE, true).apply {
             setLineSpacing(0f, 0.92f)
             setPadding(0, dp(5), 0, dp(1))
         })
