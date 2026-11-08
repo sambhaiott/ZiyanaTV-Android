@@ -299,34 +299,32 @@ class MainActivity : Activity() {
             gravity = Gravity.END or Gravity.CENTER_VERTICAL
             setPadding(0, dp(5), 0, 0)
         }
-        val searchControl = label("⌕", 17f, Color.WHITE, true).apply {
-            gravity = Gravity.CENTER
-            background = panel(0xB91A1733.toInt(), 10, 0x887F6EB1.toInt())
-            isFocusable = true
-            isClickable = true
-            contentDescription = "Search apps"
-            setOnClickListener { navigate("Search") }
-            focusStyle(this, 10, 0xB91A1733.toInt(), 0xFF604A98.toInt())
-        }
+        val searchControl = statusIcon(R.drawable.ic_search, "Search apps") { navigate("Search") }
         controlsRow.addView(searchControl, LinearLayout.LayoutParams(dp(30), dp(27)).apply {
             marginEnd = dp(6)
         })
 
-        val settingsControl = label("⚙", 14f, Color.WHITE, true).apply {
-            gravity = Gravity.CENTER
-            background = panel(0xB91A1733.toInt(), 10, 0x887F6EB1.toInt())
-            isFocusable = true
-            isClickable = true
-            contentDescription = "Settings"
-            setOnClickListener { navigate("Settings") }
-            focusStyle(this, 10, 0xB91A1733.toInt(), 0xFF604A98.toInt())
-        }
+        val settingsControl = statusIcon(R.drawable.ic_settings, "Settings") { navigate("Settings") }
         controlsRow.addView(settingsControl, LinearLayout.LayoutParams(dp(30), dp(27)))
         header.addView(controlsRow, LinearLayout.LayoutParams(-1, -2))
 
         content.addView(header, LinearLayout.LayoutParams(-1, -2))
         clock.text = SimpleDateFormat("h:mm a  •  EEE, MMM d", Locale.getDefault()).format(Date())
     }
+
+    private fun statusIcon(iconRes: Int, description: String, action: () -> Unit): ImageView =
+        ImageView(this).apply {
+            setImageResource(iconRes)
+            setColorFilter(Color.WHITE)
+            scaleType = ImageView.ScaleType.CENTER_INSIDE
+            contentDescription = description
+            background = panel(0xB91A1733.toInt(), 10, 0x887F6EB1.toInt())
+            isFocusable = true
+            isClickable = true
+            setPadding(dp(7), dp(5), dp(7), dp(5))
+            focusStyle(this, 10, 0xB91A1733.toInt(), 0xFF604A98.toInt())
+            setOnClickListener { action() }
+        }
 
     private fun showHome() {
         content.removeAllViews()
