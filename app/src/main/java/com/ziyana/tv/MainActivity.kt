@@ -384,11 +384,62 @@ class MainActivity : Activity() {
         heading("Your applications", "${sortedApps().size} installed apps · Select to launch")
         addInstalledAppsRow()
 
+        heading("Watching Continue", "Continue watching from your YouTube history")
+        addWatchingContinueCard()
+
         heading("Explore")
         addFeatureTiles(listOf("Favorites", "Entertainment", "Tools", "Settings"))
 
         content.addView(actionButton("VIEW ALL APPLICATIONS  ›", true) { navigate("Apps") },
             LinearLayout.LayoutParams(dp(230), dp(44)).apply { topMargin = dp(14) })
+    }
+
+    // YouTube keeps watch history inside the user's Google account. The launcher
+    // cannot read private history directly, so this card opens YouTube's own History page.
+    private fun addWatchingContinueCard() {
+        val youtube = getApps().firstOrNull {
+            it.loadLabel(packageManager).toString().contains("YouTube", true)
+        }
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(18), dp(12), dp(18), dp(12))
+            background = glossySurface(0xFF38332B.toInt(), 0xFF171513.toInt(), 20, 0x887D6749.toInt())
+            isFocusable = true
+            isClickable = true
+            focusStyle(this, 20, 0xFF25231F.toInt(), 0xFF705B3B.toInt())
+            setOnClickListener { openYouTubeHistory() }
+        }
+        val icon = ImageView(this).apply {
+            if (youtube != null) setImageDrawable(youtube.loadIcon(packageManager))
+            else setImageResource(android.R.drawable.ic_media_play)
+            scaleType = ImageView.ScaleType.FIT_CENTER
+        }
+        card.addView(icon, LinearLayout.LayoutParams(dp(54), dp(54)).apply { marginEnd = dp(18) })
+        val textColumn = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        textColumn.addView(label("YouTube  ·  Watch history", 15f, Color.WHITE, true))
+        textColumn.addView(label("Open your recently watched videos  ›", 11f, muted))
+        card.addView(textColumn, LinearLayout.LayoutParams(0, -2, 1f))
+        content.addView(card, LinearLayout.LayoutParams(-1, dp(86)))
+    }
+
+    private fun openYouTubeHistory() {
+        val historyUri = android.net.Uri.parse("https://www.youtube.com/feed/history")
+        val packages = listOf("com.google.android.youtube.tv", "com.google.android.youtube")
+        for (pkg in packages) {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, historyUri).setPackage(pkg)
+                if (intent.resolveActivity(packageManager) != null) {
+                    startActivity(intent)
+                    return
+                }
+            } catch (_: Exception) { }
+        }
+        val youtube = getApps().firstOrNull {
+            it.loadLabel(packageManager).toString().contains("YouTube", true)
+        }
+        if (youtube != null) launchActivity(youtube)
+        else toast("YouTube is not installed on this TV")
     }
 
     private fun actionButton(textValue: String, primary: Boolean, action: () -> Unit): TextView =
