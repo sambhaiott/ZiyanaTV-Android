@@ -243,10 +243,13 @@ class MainActivity : Activity() {
                     0xFF17191D.toInt(), 17, if (selected == name) 0xFFE5D2A9.toInt() else 0x557D7564)
                 setOnClickListener { navigate(name) }
                 setOnFocusChangeListener { v, hasFocus ->
-                    v.background = panel(if (hasFocus || selected == name) 0xFF4A463D.toInt() else 0x332A2A2A,
-                        17, if (hasFocus || selected == name) 0xFFE5D2A9.toInt() else 0)
-                    v.animate().scaleX(if (hasFocus) 1.04f else 1f)
-                        .scaleY(if (hasFocus) 1.04f else 1f).setDuration(120).start()
+                    v.background = glossySurface(if (hasFocus || selected == name) 0xFF625A49.toInt() else 0x6636383B,
+                        0xFF17191D.toInt(), 17,
+                        if (hasFocus || selected == name) 0xFFE5D2A9.toInt() else 0x557D7564)
+                    v.animate().scaleX(if (hasFocus) 1.035f else 1f)
+                        .scaleY(if (hasFocus) 1.035f else 1f)
+                        .setDuration(205)
+                        .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
                 }
             }
             val lp = LinearLayout.LayoutParams(-1, dp(47))
