@@ -281,10 +281,38 @@ class MainActivity : Activity() {
             setPadding(dp(2), dp(2), dp(2), dp(12))
         }
         top.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
-        clock = label("", 15f, 0xFFFFFFFF.toInt(), true).apply {
+
+        // Compact top-right controls: Search, Settings, then live clock/date.
+        val searchControl = label("⌕", 23f, Color.WHITE, true).apply {
             gravity = Gravity.CENTER
-            setPadding(dp(14), dp(9), dp(14), dp(9))
-            background = panel(0xB91A1733.toInt(), 18, 0x887F6EB1.toInt())
+            background = panel(0xB91A1733.toInt(), 15, 0x887F6EB1.toInt())
+            isFocusable = true
+            isClickable = true
+            contentDescription = "Search apps"
+            setOnClickListener { navigate("Search") }
+            focusStyle(this, 15, 0xB91A1733.toInt(), 0xFF604A98.toInt())
+        }
+        top.addView(searchControl, LinearLayout.LayoutParams(dp(42), dp(38)).apply {
+            marginEnd = dp(8)
+        })
+
+        val settingsControl = label("⚙", 17f, Color.WHITE, true).apply {
+            gravity = Gravity.CENTER
+            background = panel(0xB91A1733.toInt(), 15, 0x887F6EB1.toInt())
+            isFocusable = true
+            isClickable = true
+            contentDescription = "Settings"
+            setOnClickListener { navigate("Settings") }
+            focusStyle(this, 15, 0xB91A1733.toInt(), 0xFF604A98.toInt())
+        }
+        top.addView(settingsControl, LinearLayout.LayoutParams(dp(42), dp(38)).apply {
+            marginEnd = dp(8)
+        })
+
+        clock = label("", 13f, 0xFFFFFFFF.toInt(), true).apply {
+            gravity = Gravity.CENTER
+            setPadding(dp(12), dp(9), dp(12), dp(9))
+            background = panel(0xB91A1733.toInt(), 15, 0x887F6EB1.toInt())
             elevation = dp(3).toFloat()
         }
         top.addView(clock)
