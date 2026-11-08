@@ -130,8 +130,8 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(12), dp(18), dp(10), dp(18))
             background = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-                intArrayOf(0xF20B0D12.toInt(), 0xE9161921.toInt(), 0xE8202028.toInt()))
-                .apply { cornerRadius = dp(26).toFloat(); setStroke(dp(1), 0x557D7B76) }
+                intArrayOf(0xF20B0C10.toInt(), 0xEA201B18.toInt(), 0xE82D251C.toInt()))
+                .apply { cornerRadius = dp(26).toFloat(); setStroke(dp(1), 0x887F6A4A.toInt()) }
         }
         val scroll = ScrollView(this).apply {
             isFillViewport = true
@@ -227,8 +227,8 @@ class MainActivity : Activity() {
         nav.addView(brand)
 
         val items = listOf(
-            "⌂" to "Home", "⌕" to "Search", "▦" to "Apps", "★" to "Favorites",
-            "▶" to "Entertainment", "▧" to "Tools", "⚙" to "Settings"
+            "⌂" to "Home", "⌕" to "Search", "▦" to "Apps", "♡" to "Favorites",
+            "▷" to "Entertainment", "◈" to "Tools", "⚙" to "Settings"
         )
         items.forEach { (symbol, name) ->
             val item = TextView(this).apply {
@@ -244,8 +244,8 @@ class MainActivity : Activity() {
                 setOnClickListener { navigate(name) }
                 setOnFocusChangeListener { v, hasFocus ->
                     v.background = glossySurface(if (hasFocus || selected == name) 0xFF705B3B.toInt() else 0x66413A30,
-                        0xFF17191D.toInt(), 17,
-                        if (hasFocus || selected == name) 0xFFE5D2A9.toInt() else 0x557D7564)
+                        0xFF171513.toInt(), 17,
+                        if (hasFocus || selected == name) 0xFFE8D5AF.toInt() else 0x667D6749)
                     v.animate().scaleX(if (hasFocus) 1.035f else 1f)
                         .scaleY(if (hasFocus) 1.035f else 1f)
                         .setDuration(205)
