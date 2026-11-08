@@ -286,8 +286,8 @@ class MainActivity : Activity() {
         top.addView(clock)
         content.addView(top)
 
-        // Full-width artwork panel: no repeated Ziyana title or Apps/Search buttons on the right canvas.
-        content.addView(heroCard(), LinearLayout.LayoutParams(-1, dp(230)).apply { topMargin = dp(2) })
+        // Keep one permanent full-screen anime wallpaper; no second hero image or slideshow.
+        content.addView(View(this), LinearLayout.LayoutParams(1, dp(20)))
 
         heading("Your applications", "${sortedApps().size} installed apps · Select to launch")
         addInstalledAppsRow()
@@ -297,24 +297,6 @@ class MainActivity : Activity() {
 
         content.addView(actionButton("VIEW ALL APPLICATIONS  ›", true) { navigate("Apps") },
             LinearLayout.LayoutParams(dp(230), dp(44)).apply { topMargin = dp(14) })
-    }
-
-    private fun heroCard(): View {
-        val hero = FrameLayout(this).apply {
-            background = panel(0xFF17132F.toInt(), 25, 0x88D8B7FF.toInt())
-            clipToOutline = true
-        }
-        hero.addView(ImageView(this).apply {
-            setImageResource(R.drawable.anime_sakura_wallpaper)
-            scaleType = ImageView.ScaleType.CENTER_CROP
-            contentDescription = "Anime girl with cherry blossoms and full moon"
-        }, FrameLayout.LayoutParams(-1, -1))
-        hero.addView(View(this).apply {
-            background = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
-                intArrayOf(0xE80A0A20.toInt(), 0x880D0A28.toInt(), 0x110D0A28))
-        }, FrameLayout.LayoutParams(-1, -1))
-        // Artwork-only hero. The anime wallpaper is the visual focus; controls stay in navigation.
-        return hero
     }
 
     private fun actionButton(textValue: String, primary: Boolean, action: () -> Unit): TextView =
