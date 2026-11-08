@@ -513,9 +513,16 @@ class MainActivity : Activity() {
             }.setNegativeButton("Cancel", null).show()
     }
 
+    private fun showMediaInfo(section: String) {
+        AlertDialog.Builder(this).setTitle(section)
+            .setMessage("Open a compatible streaming app from Applications to watch your content.")
+            .setPositiveButton("Open apps") { _, _ -> navigate("Apps") }
+            .setNegativeButton("Close", null).show()
+    }
+
     private fun showSettings() {
         clearPage("Settings", "Launcher and device controls")
-        val options = listOf(
+        val options: List<Pair<String, () -> Unit>> = listOf(
             "Android system settings" to { try { startActivity(Intent(android.provider.Settings.ACTION_SETTINGS)) } catch (_: Exception) { toast("Settings unavailable") } },
             "Refresh installed apps" to { showAppsPage(); toast("App list refreshed") },
             "About Ziyana TV" to { AlertDialog.Builder(this).setTitle("Ziyana TV").setMessage("Premium Android TV launcher\\nVersion 1.1").setPositiveButton("OK", null).show() },
