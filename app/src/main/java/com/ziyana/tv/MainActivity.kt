@@ -274,49 +274,57 @@ class MainActivity : Activity() {
     }
 
     private fun addStatusHeader() {
-        // Persistent top-right clock/date on every launcher page.
-        val top = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
+        // Clock/date stays on the first line; compact Search and Settings icons sit below it.
+        val header = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.END
             setPadding(dp(2), dp(2), dp(2), dp(12))
         }
-        top.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
 
-        // Compact top-right controls: Search, Settings, then live clock/date.
-        val searchControl = label("⌕", 23f, Color.WHITE, true).apply {
+        val clockRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END or Gravity.CENTER_VERTICAL
+        }
+        clock = label("", 13f, 0xFFFFFFFF.toInt(), true).apply {
             gravity = Gravity.CENTER
+            setPadding(dp(12), dp(8), dp(12), dp(8))
             background = panel(0xB91A1733.toInt(), 15, 0x887F6EB1.toInt())
+            elevation = dp(3).toFloat()
+        }
+        clockRow.addView(clock)
+        header.addView(clockRow, LinearLayout.LayoutParams(-1, -2))
+
+        val controlsRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END or Gravity.CENTER_VERTICAL
+            setPadding(0, dp(5), 0, 0)
+        }
+        val searchControl = label("⌕", 17f, Color.WHITE, true).apply {
+            gravity = Gravity.CENTER
+            background = panel(0xB91A1733.toInt(), 10, 0x887F6EB1.toInt())
             isFocusable = true
             isClickable = true
             contentDescription = "Search apps"
             setOnClickListener { navigate("Search") }
-            focusStyle(this, 15, 0xB91A1733.toInt(), 0xFF604A98.toInt())
+            focusStyle(this, 10, 0xB91A1733.toInt(), 0xFF604A98.toInt())
         }
-        top.addView(searchControl, LinearLayout.LayoutParams(dp(42), dp(38)).apply {
-            marginEnd = dp(8)
+        controlsRow.addView(searchControl, LinearLayout.LayoutParams(dp(30), dp(27)).apply {
+            marginEnd = dp(6)
         })
 
-        val settingsControl = label("⚙", 17f, Color.WHITE, true).apply {
+        val settingsControl = label("⚙", 14f, Color.WHITE, true).apply {
             gravity = Gravity.CENTER
-            background = panel(0xB91A1733.toInt(), 15, 0x887F6EB1.toInt())
+            background = panel(0xB91A1733.toInt(), 10, 0x887F6EB1.toInt())
             isFocusable = true
             isClickable = true
             contentDescription = "Settings"
             setOnClickListener { navigate("Settings") }
-            focusStyle(this, 15, 0xB91A1733.toInt(), 0xFF604A98.toInt())
+            focusStyle(this, 10, 0xB91A1733.toInt(), 0xFF604A98.toInt())
         }
-        top.addView(settingsControl, LinearLayout.LayoutParams(dp(42), dp(38)).apply {
-            marginEnd = dp(8)
-        })
+        controlsRow.addView(settingsControl, LinearLayout.LayoutParams(dp(30), dp(27)))
+        header.addView(controlsRow, LinearLayout.LayoutParams(-1, -2))
 
-        clock = label("", 13f, 0xFFFFFFFF.toInt(), true).apply {
-            gravity = Gravity.CENTER
-            setPadding(dp(12), dp(9), dp(12), dp(9))
-            background = panel(0xB91A1733.toInt(), 15, 0x887F6EB1.toInt())
-            elevation = dp(3).toFloat()
-        }
-        top.addView(clock)
-        content.addView(top, LinearLayout.LayoutParams(-1, -2))
+        content.addView(header, LinearLayout.LayoutParams(-1, -2))
         clock.text = SimpleDateFormat("h:mm a  •  EEE, MMM d", Locale.getDefault()).format(Date())
     }
 
