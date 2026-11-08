@@ -85,7 +85,11 @@ class MainActivity : Activity() {
                 intArrayOf(0xF006071B.toInt(), 0xB30B0A25.toInt(), 0x99090A20.toInt()))
         }, FrameLayout.LayoutParams(-1, -1))
 
-        val shell = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val shell = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            clipChildren = false
+            clipToPadding = false
+        }
         nav = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(12), dp(18), dp(10), dp(18))
@@ -96,12 +100,15 @@ class MainActivity : Activity() {
         val scroll = ScrollView(this).apply {
             isFillViewport = true
             clipToPadding = false
+            clipChildren = false
             isFocusable = false
             setPadding(0, 0, 0, dp(8))
         }
         content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(26), dp(18), dp(30), dp(30))
+            clipChildren = false
+            clipToPadding = false
         }
         scroll.addView(content)
         shell.addView(nav, LinearLayout.LayoutParams(dp(158), -1))
@@ -139,11 +146,23 @@ class MainActivity : Activity() {
         }
 
     private fun focusStyle(view: View, radius: Int, normal: Int, focused: Int) {
+        view.isFocusable = true
+        view.isClickable = true
         view.setOnFocusChangeListener { v, hasFocus ->
-            v.background = panel(if (hasFocus) focused else normal, radius,
-                if (hasFocus) 0xFFE5C7FF.toInt() else 0x557C68B5)
-            v.animate().scaleX(if (hasFocus) 1.045f else 1f)
-                .scaleY(if (hasFocus) 1.045f else 1f).setDuration(130).start()
+            // Clear focus target for TV remote navigation.
+            v.background = panel(
+                if (hasFocus) focused else normal,
+                radius,
+                if (hasFocus) 0xFFFFE6FF.toInt() else 0x557C68B5
+            )
+            v.animate().cancel()
+            v.animate()
+                .scaleX(if (hasFocus) 1.075f else 1f)
+                .scaleY(if (hasFocus) 1.075f else 1f)
+                .translationZ(if (hasFocus) dp(12).toFloat() else 0f)
+                .setDuration(155)
+                .start()
+            v.elevation = if (hasFocus) dp(12).toFloat() else 0f
         }
     }
 
@@ -309,7 +328,8 @@ class MainActivity : Activity() {
             background = panel(0xE91B1A38.toInt(), 17, 0x667D6AAE)
             isFocusable = true
             isClickable = true
-            focusStyle(this, 17, 0xE91B1A38.toInt(), 0xFF55428F.toInt())
+            clipChildren = false
+            focusStyle(this, 17, 0xE91B1A38.toInt(), 0xFF6A50B5.toInt())
             setOnClickListener { launchActivity(info) }
             setOnLongClickListener { showAppOptions(info); true }
         }
@@ -326,6 +346,7 @@ class MainActivity : Activity() {
         card.addView(label(info.loadLabel(packageManager).toString(), 11f, Color.WHITE, true).apply {
             gravity = Gravity.CENTER
             maxLines = 1
+            ellipsize = android.text.TextUtils.TruncateAt.END
             setPadding(dp(4), dp(5), dp(4), 0)
         })
         return card
