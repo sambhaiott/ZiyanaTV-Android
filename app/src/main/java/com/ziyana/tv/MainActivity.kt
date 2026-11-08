@@ -31,19 +31,17 @@ class MainActivity : Activity() {
     private lateinit var nav: LinearLayout
     private lateinit var clock: TextView
     private var selected = "Home"
+    private var appFilter = "All"
     private val prefs by lazy { getSharedPreferences("ziyana_launcher", MODE_PRIVATE) }
-    private fun favorites() = prefs.getStringSet("favorites", emptySet())?.toMutableSet() ?: mutableSetOf()
-    private fun recent() = (prefs.getString("recent", "") ?: "").split("|").filter { it.isNotBlank() }
-    private fun rememberLaunch(pkg: String) {
-        val items = (listOf(pkg) + recent().filter { it != pkg }).take(12)
-        prefs.edit().putString("recent", items.joinToString("|")).apply()
-    }
-    private fun toggleFavorite(pkg: String) {
-        val items = favorites()
-        if (!items.add(pkg)) items.remove(pkg)
-        prefs.edit().putStringSet("favorites", items).apply()
-        toast(if (pkg in items) "Added to favorites" else "Removed from favorites")
-        if (selected == "Favorites") showFavoritesPage()
+    private fun pinned() = prefs.getStringSet("pinned_apps", emptySet())?.toMutableSet() ?: mutableSetOf()
+    private fun togglePinned(pkg: String) {
+        val items = pinned()
+        val added = if (items.contains(pkg)) { items.remove(pkg); false } else { items.add(pkg); true }
+        prefs.edit().putStringSet("pinned_apps", items).apply()
+        toast(if (added) "App pinned" else "App unpinned")
+        if (selected == "Apps" || selected == "Home" || selected == "Entertainment" || selected == "Tools") {
+            if (selected == "Home") showHome() else showAppsPage()
+        }
     }
     private val handler = Handler(Looper.getMainLooper())
     private val clockTick = object : Runnable {
@@ -147,9 +145,8 @@ class MainActivity : Activity() {
         nav.addView(brand)
 
         val items = listOf(
-            "⌂" to "Home", "⌕" to "Search", "▦" to "Apps", "♡" to "Favorites",
-            "▣" to "Live TV", "◉" to "Movies", "▤" to "Series",
-            "▶" to "YouTube", "⚙" to "Settings"
+            "⌂" to "Home", "⌕" to "Search", "▦" to "Apps",
+            "▶" to "Entertainment", "▧" to "Tools", "⚙" to "Settings"
         )
         items.forEach { (symbol, name) ->
             val item = TextView(this).apply {
@@ -183,13 +180,9 @@ class MainActivity : Activity() {
         when (name) {
             "Home" -> showHome()
             "Apps" -> showAppsPage()
-            "Favorites" -> showFavoritesPage()
-            "Settings" -> try {
-                startActivity(Intent(android.provider.Settings.ACTION_SETTINGS))
-            } catch (_: Exception) { toast("Settings unavailable") }
-            "Live TV" -> launchFirstMatching(listOf("tv", "iptv", "live"))
-            "Movies", "Series" -> showMediaInfo(name)
-            "YouTube" -> launchPackage("com.google.android.youtube.tv")
+            "Entertainment" -> { appFilter = "Entertainment"; showAppsPage() }
+            "Tools" -> { appFilter = "Tools"; showAppsPage() }
+            "Settings" -> showSettings()
             "Search" -> showSearch()
         }
     }
@@ -211,21 +204,20 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER_VERTICAL
             setPadding(0, dp(4), 0, dp(12))
         }
-        top.addView(label("ZIYANA", 18f, Color.WHITE, true))
+        top.addView(label("ZIYANA", 19f, Color.WHITE, true))
+        top.addView(label(" TV", 19f, purple, true))
         top.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
-        top.addView(actionButton("⌕", false) { navigate("Search") },
-            LinearLayout.LayoutParams(dp(44), dp(40)))
+        top.addView(actionButton("⌕", false) { navigate("Search") }, LinearLayout.LayoutParams(dp(46), dp(42)))
         clock = label("", 12f, 0xFFF4EFFF.toInt(), true)
         top.addView(clock.apply { setPadding(dp(16), 0, 0, 0) })
         content.addView(top)
-        heading("Favorites")
-        addPackageRow(favorites().toList())
-        heading("Recently opened")
-        addPackageRow(recent())
-        heading("All installed apps")
+        content.addView(heroCard(), LinearLayout.LayoutParams(-1, dp(205)).apply { topMargin = dp(4) })
+        heading("Applications", "Select an app to launch")
         addInstalledAppsRow()
-        content.addView(actionButton("VIEW ALL APPS  ›", true) { navigate("Apps") },
-            LinearLayout.LayoutParams(dp(170), dp(42)).apply { topMargin = dp(18) })
+        heading("Quick access")
+        addQuickActions()
+        content.addView(actionButton("BROWSE ALL APPS  ›", true) { navigate("Apps") },
+            LinearLayout.LayoutParams(dp(200), dp(44)).apply { topMargin = dp(17) })
     }
 
     private fun heroCard(): View {
@@ -233,38 +225,27 @@ class MainActivity : Activity() {
             background = panel(0xFF17132F.toInt(), 25, 0x88D8B7FF.toInt())
             clipToOutline = true
         }
-        val artwork = ImageView(this).apply {
+        hero.addView(ImageView(this).apply {
             setImageResource(R.drawable.anime_sakura_wallpaper)
             scaleType = ImageView.ScaleType.CENTER_CROP
-            contentDescription = "Anime girl under a full moon and cherry blossoms"
-        }
-        hero.addView(artwork, FrameLayout.LayoutParams(-1, -1))
+            contentDescription = "Anime girl with cherry blossoms and full moon"
+        }, FrameLayout.LayoutParams(-1, -1))
         hero.addView(View(this).apply {
             background = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
-                intArrayOf(0xF20A0A20.toInt(), 0xC20D0A28.toInt(), 0x220D0A28))
+                intArrayOf(0xE80A0A20.toInt(), 0x880D0A28.toInt(), 0x110D0A28))
         }, FrameLayout.LayoutParams(-1, -1))
-
-        val copy = LinearLayout(this).apply {
+        val controls = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(25), dp(22), dp(10), dp(18))
-        }
-        copy.addView(label("ZIYANA  •  ANIME NIGHT  •  4K", 10f, 0xFFF0BFFF.toInt(), true))
-        copy.addView(label("Moonlit\nSakura", 34f, Color.WHITE, true).apply {
-            setLineSpacing(0f, 0.92f)
-            setPadding(0, dp(5), 0, dp(1))
-        })
-        copy.addView(label("Anime atmosphere. Your favourite apps. One screen.", 12f, 0xFFE4D8F7.toInt()))
-        val buttons = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(0, dp(13), 0, 0)
+            setPadding(dp(24), dp(14), dp(14), dp(14))
         }
-        buttons.addView(actionButton("▦  All Apps", true) { navigate("Apps") },
-            LinearLayout.LayoutParams(dp(132), dp(42)))
-        buttons.addView(actionButton("⌕  Search", false) { navigate("Search") },
-            LinearLayout.LayoutParams(dp(112), dp(42)).apply { marginStart = dp(9) })
-        copy.addView(buttons)
-        hero.addView(copy, FrameLayout.LayoutParams(-1, -1))
+        controls.addView(label("ZIYANA TV", 13f, 0xFFF0C9FF.toInt(), true))
+        val buttons = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        buttons.addView(actionButton("▦  APPS", true) { navigate("Apps") }, LinearLayout.LayoutParams(dp(116), dp(40)))
+        buttons.addView(actionButton("⌕  SEARCH", false) { navigate("Search") },
+            LinearLayout.LayoutParams(dp(116), dp(40)).apply { marginStart = dp(9) })
+        controls.addView(buttons)
+        hero.addView(controls, FrameLayout.LayoutParams(-1, -1))
         return hero
     }
 
@@ -292,7 +273,7 @@ class MainActivity : Activity() {
             clipToPadding = false
             addView(row)
         }
-        getApps().forEach { info ->
+        sortedApps().take(12).forEach { info ->
             val card = appCard(info)
             val lp = LinearLayout.LayoutParams(dp(132), dp(112))
             lp.marginEnd = dp(12)
@@ -310,8 +291,8 @@ class MainActivity : Activity() {
             isFocusable = true
             isClickable = true
             focusStyle(this, 17, 0xE91B1A38.toInt(), 0xFF55428F.toInt())
-            setOnClickListener { rememberLaunch(info.activityInfo.packageName); launchActivity(info) }
-            setOnLongClickListener { toggleFavorite(info.activityInfo.packageName); true }
+            setOnClickListener { launchActivity(info) }
+            setOnLongClickListener { togglePinned(info.activityInfo.packageName); true }
         }
         card.addView(ImageView(this).apply {
             setImageDrawable(info.loadIcon(packageManager))
@@ -397,10 +378,20 @@ class MainActivity : Activity() {
     }
 
     private fun showAppsPage() {
-        clearPage("All apps  ·  ${getApps().size}")
-        val apps = getApps()
+        clearPage("Applications  ·  ${getApps().size}", "Choose a category or open any installed app")
+        val filters = listOf("All", "Entertainment", "Tools", "System")
+        val filterRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        filters.forEach { filter ->
+            filterRow.addView(actionButton(filter, appFilter == filter) {
+                appFilter = filter
+                showAppsPage()
+            }, LinearLayout.LayoutParams(dp(120), dp(40)).apply { marginEnd = dp(9) })
+        }
+        content.addView(filterRow, LinearLayout.LayoutParams(-1, dp(52)).apply { topMargin = dp(12) })
+        val apps = sortedApps().filter { matchesFilter(it, appFilter) }
+        heading(if (appFilter == "All") "All applications" else appFilter)
         if (apps.isEmpty()) {
-            content.addView(label("No TV apps are visible. Install apps from Google Play Store.", 15f, muted))
+            content.addView(label("No apps found in this category.", 14f, muted))
             return
         }
         addAppGrid(apps)
@@ -418,11 +409,25 @@ class MainActivity : Activity() {
         else content.addView(HorizontalScrollView(this).apply { isHorizontalScrollBarEnabled = false; isFocusable = false; addView(row) }, LinearLayout.LayoutParams(-1, dp(120)))
     }
 
-    private fun showFavoritesPage() {
-        clearPage("Favorites", "Long-press an app card to add or remove it")
-        val apps = getApps().filter { it.activityInfo.packageName in favorites() }
-        if (apps.isEmpty()) content.addView(label("No favorites yet. Open Apps and long-press an app.", 14f, muted))
-        else addAppGrid(apps)
+    private fun sortedApps(): List<android.content.pm.ResolveInfo> {
+        val pins = pinned()
+        return getApps().sortedWith(compareByDescending<android.content.pm.ResolveInfo> {
+            it.activityInfo.packageName in pins
+        }.thenBy { it.loadLabel(packageManager).toString().trim().lowercase(Locale.getDefault()) })
+    }
+
+    private fun matchesFilter(info: android.content.pm.ResolveInfo, filter: String): Boolean {
+        if (filter == "All") return true
+        val name = info.loadLabel(packageManager).toString().lowercase(Locale.getDefault())
+        val pkg = info.activityInfo.packageName.lowercase(Locale.getDefault())
+        val media = listOf("youtube", "netflix", "prime", "video", "disney", "crunchy", "plex", "tubi", "jellyfin", "spotify", "music", "iptv", "tv", "movie", "media")
+        val system = listOf("settings", "launcher", "system", "update", "input", "remote", "cast")
+        return when (filter) {
+            "Entertainment" -> media.any { name.contains(it) || pkg.contains(it) }
+            "System" -> system.any { name.contains(it) || pkg.contains(it) }
+            "Tools" -> !media.any { name.contains(it) || pkg.contains(it) } && !system.any { name.contains(it) || pkg.contains(it) }
+            else -> true
+        }
     }
 
     private fun addAppGrid(apps: List<android.content.pm.ResolveInfo>) {
@@ -442,7 +447,6 @@ class MainActivity : Activity() {
         if (::content.isInitialized) when (selected) {
             "Home" -> showHome()
             "Apps" -> showAppsPage()
-            "Favorites" -> showFavoritesPage()
         }
     }
 
@@ -456,7 +460,7 @@ class MainActivity : Activity() {
             Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), 0)
         val combined = (leanback + standard)
             .filter { it.activityInfo != null && it.activityInfo.packageName != packageName }
-            .distinctBy { it.activityInfo.packageName + "/" + it.activityInfo.name }
+            .distinctBy { it.activityInfo.packageName }
         return combined.sortedBy {
             it.loadLabel(packageManager).toString().trim().lowercase(Locale.getDefault())
         }
@@ -503,11 +507,17 @@ class MainActivity : Activity() {
             }.setNegativeButton("Cancel", null).show()
     }
 
-    private fun showMediaInfo(section: String) {
-        AlertDialog.Builder(this).setTitle(section)
-            .setMessage("This is a launcher section. Open a compatible streaming app to watch your own content.")
-            .setPositiveButton("Open Apps") { _, _ -> navigate("Apps") }
-            .setNegativeButton("Close", null).show()
+    private fun showSettings() {
+        clearPage("Settings", "Launcher and device controls")
+        val options = listOf(
+            "Android system settings" to { try { startActivity(Intent(android.provider.Settings.ACTION_SETTINGS)) } catch (_: Exception) { toast("Settings unavailable") } },
+            "Refresh installed apps" to { showAppsPage(); toast("App list refreshed") },
+            "About Ziyana TV" to { AlertDialog.Builder(this).setTitle("Ziyana TV").setMessage("Premium Android TV launcher\\nVersion 1.1").setPositiveButton("OK", null).show() },
+            "Choose Home launcher" to { toast("Press the TV remote Home button and select Ziyana TV if your TV offers the choice.") }
+        )
+        options.forEach { (title, action) ->
+            content.addView(actionButton(title, false, action), LinearLayout.LayoutParams(dp(310), dp(48)).apply { topMargin = dp(12) })
+        }
     }
 
     private fun toast(message: String) = Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
