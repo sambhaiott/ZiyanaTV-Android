@@ -408,7 +408,10 @@ class MainActivity : Activity() {
         val actions = arrayOf(
             if (isFavorite) "Remove from Favorites" else "Add to Favorites",
             if (isPinned) "Unpin from top" else "Pin to top",
-            "Open app", "App information", "Uninstall app"
+            "Open app",
+            "App information",
+            if (pkg in hiddenApps()) "Show in launcher" else "Hide from launcher",
+            "Uninstall app"
         )
         AlertDialog.Builder(this)
             .setTitle(info.loadLabel(packageManager).toString())
