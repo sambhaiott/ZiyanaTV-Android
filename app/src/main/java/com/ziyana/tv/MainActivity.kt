@@ -31,6 +31,20 @@ class MainActivity : Activity() {
     private lateinit var nav: LinearLayout
     private lateinit var clock: TextView
     private var selected = "Home"
+    private val prefs by lazy { getSharedPreferences("ziyana_launcher", MODE_PRIVATE) }
+    private fun favorites() = prefs.getStringSet("favorites", emptySet())?.toMutableSet() ?: mutableSetOf()
+    private fun recent() = (prefs.getString("recent", "") ?: "").split("|").filter { it.isNotBlank() }
+    private fun rememberLaunch(pkg: String) {
+        val items = (listOf(pkg) + recent().filter { it != pkg }).take(12)
+        prefs.edit().putString("recent", items.joinToString("|")).apply()
+    }
+    private fun toggleFavorite(pkg: String) {
+        val items = favorites()
+        if (!items.add(pkg)) items.remove(pkg)
+        prefs.edit().putStringSet("favorites", items).apply()
+        toast(if (pkg in items) "Added to favorites" else "Removed from favorites")
+        if (selected == "Favorites") showFavoritesPage()
+    }
     private val handler = Handler(Looper.getMainLooper())
     private val clockTick = object : Runnable {
         override fun run() {
@@ -133,7 +147,7 @@ class MainActivity : Activity() {
         nav.addView(brand)
 
         val items = listOf(
-            "⌂" to "Home", "⌕" to "Search", "▦" to "Apps",
+            "⌂" to "Home", "⌕" to "Search", "▦" to "Apps", "♡" to "Favorites",
             "▣" to "Live TV", "◉" to "Movies", "▤" to "Series",
             "▶" to "YouTube", "⚙" to "Settings"
         )
@@ -169,6 +183,7 @@ class MainActivity : Activity() {
         when (name) {
             "Home" -> showHome()
             "Apps" -> showAppsPage()
+            "Favorites" -> showFavoritesPage()
             "Settings" -> try {
                 startActivity(Intent(android.provider.Settings.ACTION_SETTINGS))
             } catch (_: Exception) { toast("Settings unavailable") }
@@ -203,7 +218,11 @@ class MainActivity : Activity() {
         clock = label("", 12f, 0xFFF4EFFF.toInt(), true)
         top.addView(clock.apply { setPadding(dp(16), 0, 0, 0) })
         content.addView(top)
-        heading("Installed apps")
+        heading("Favorites")
+        addPackageRow(favorites().toList())
+        heading("Recently opened")
+        addPackageRow(recent())
+        heading("All installed apps")
         addInstalledAppsRow()
         content.addView(actionButton("VIEW ALL APPS  ›", true) { navigate("Apps") },
             LinearLayout.LayoutParams(dp(170), dp(42)).apply { topMargin = dp(18) })
@@ -291,7 +310,8 @@ class MainActivity : Activity() {
             isFocusable = true
             isClickable = true
             focusStyle(this, 17, 0xE91B1A38.toInt(), 0xFF55428F.toInt())
-            setOnClickListener { launchActivity(info) }
+            setOnClickListener { rememberLaunch(info.activityInfo.packageName); launchActivity(info) }
+            setOnLongClickListener { toggleFavorite(info.activityInfo.packageName); true }
         }
         card.addView(ImageView(this).apply {
             setImageDrawable(info.loadIcon(packageManager))
@@ -383,15 +403,33 @@ class MainActivity : Activity() {
             content.addView(label("No TV apps are visible. Install apps from Google Play Store.", 15f, muted))
             return
         }
+        addAppGrid(apps)
+    }
+
+    private fun newAppRow() = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+
+    private fun addPackageRow(packages: List<String>) {
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val byPackage = getApps().associateBy { it.activityInfo.packageName }
+        packages.distinct().mapNotNull { byPackage[it] }.forEach { info ->
+            row.addView(appCard(info), LinearLayout.LayoutParams(dp(132), dp(112)).apply { marginEnd = dp(12) })
+        }
+        if (row.childCount == 0) content.addView(label("Long-press an app to add it to Favorites.", 12f, muted))
+        else content.addView(HorizontalScrollView(this).apply { isHorizontalScrollBarEnabled = false; isFocusable = false; addView(row) }, LinearLayout.LayoutParams(-1, dp(120)))
+    }
+
+    private fun showFavoritesPage() {
+        clearPage("Favorites", "Long-press an app card to add or remove it")
+        val apps = getApps().filter { it.activityInfo.packageName in favorites() }
+        if (apps.isEmpty()) content.addView(label("No favorites yet. Open Apps and long-press an app.", 14f, muted))
+        else addAppGrid(apps)
+    }
+
+    private fun addAppGrid(apps: List<android.content.pm.ResolveInfo>) {
         var row = newAppRow()
         apps.forEachIndexed { index, info ->
-            if (index > 0 && index % 5 == 0) {
-                content.addView(row)
-                row = newAppRow()
-            }
-            val lp = LinearLayout.LayoutParams(0, dp(116), 1f)
-            lp.setMargins(0, dp(12), dp(12), 0)
-            row.addView(appCard(info), lp)
+            if (index > 0 && index % 5 == 0) { content.addView(row); row = newAppRow() }
+            row.addView(appCard(info), LinearLayout.LayoutParams(0, dp(116), 1f).apply { setMargins(0, dp(12), dp(12), 0) })
         }
         if (row.childCount > 0) {
             while (row.childCount < 5) row.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
@@ -399,7 +437,14 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun newAppRow() = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+    override fun onResume() {
+        super.onResume()
+        if (::content.isInitialized) when (selected) {
+            "Home" -> showHome()
+            "Apps" -> showAppsPage()
+            "Favorites" -> showFavoritesPage()
+        }
+    }
 
     @Suppress("DEPRECATION")
     private fun getApps(): List<android.content.pm.ResolveInfo> {
@@ -419,10 +464,12 @@ class MainActivity : Activity() {
 
     private fun launchActivity(info: android.content.pm.ResolveInfo) {
         try {
-            startActivity(Intent(Intent.ACTION_MAIN)
-                .addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER)
-                .setClassName(info.activityInfo.packageName, info.activityInfo.name))
-        } catch (_: Exception) { launchPackage(info.activityInfo.packageName) }
+            val pkg = info.activityInfo.packageName
+            val launch = packageManager.getLeanbackLaunchIntentForPackage(pkg)
+                ?: packageManager.getLaunchIntentForPackage(pkg)
+                ?: Intent(Intent.ACTION_MAIN).setClassName(pkg, info.activityInfo.name)
+            startActivity(launch)
+        } catch (_: Exception) { toast("Could not open app") }
     }
 
     private fun launchPackage(pkg: String) {
