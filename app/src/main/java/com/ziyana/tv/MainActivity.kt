@@ -698,6 +698,8 @@ class MainActivity : Activity() {
             "Home" -> showHome()
             "Apps", "Entertainment", "Tools" -> showAppsPage()
             "Favorites" -> showFavoritesPage()
+            "Search" -> showSearch()
+            "Settings" -> showSettings()
         }
     }
 
@@ -760,9 +762,12 @@ class MainActivity : Activity() {
         }
         content.addView(input, LinearLayout.LayoutParams(-1, dp(52)).apply { topMargin = dp(18) })
         if (pendingVoiceQuery.isNotBlank()) {
-            input.setText(pendingVoiceQuery)
-            input.setSelection(input.text.length)
+            searchQuery = pendingVoiceQuery
             pendingVoiceQuery = ""
+        }
+        if (searchQuery.isNotBlank()) {
+            input.setText(searchQuery)
+            input.setSelection(input.text.length)
         }
         val results = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         content.addView(results, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(14) })
@@ -790,7 +795,10 @@ class MainActivity : Activity() {
         render("")
         input.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { render(s?.toString() ?: "") }
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                searchQuery = s?.toString() ?: ""
+                render(searchQuery)
+            }
             override fun afterTextChanged(s: Editable?) {}
         })
         input.requestFocus()
