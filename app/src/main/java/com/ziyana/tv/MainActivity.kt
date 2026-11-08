@@ -179,16 +179,17 @@ class MainActivity : Activity() {
             includeFontPadding = true
         }
 
+    // Use the same deep charcoal-to-warm-black palette as the left navigation rail.
     private fun panel(color: Int, radius: Int, strokeColor: Int = 0): GradientDrawable =
-        GradientDrawable().apply {
-            setColor(color)
+        GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+            intArrayOf(0xF20B0C10.toInt(), 0xEA201B18.toInt(), 0xE82D251C.toInt())).apply {
             cornerRadius = dp(radius).toFloat()
             if (strokeColor != 0) setStroke(dp(1), strokeColor)
         }
 
     private fun glossySurface(top: Int, bottom: Int, radius: Int, stroke: Int = 0x557D7564): GradientDrawable =
         GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-            intArrayOf(0x24FFFFFF, top, bottom)).apply {
+            intArrayOf(0xF20B0C10.toInt(), 0xEA201B18.toInt(), 0xE82D251C.toInt())).apply {
             cornerRadius = dp(radius).toFloat()
             if (stroke != 0) setStroke(dp(1), stroke)
         }
