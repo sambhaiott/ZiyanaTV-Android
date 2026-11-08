@@ -273,25 +273,30 @@ class MainActivity : Activity() {
 
     private fun showHome() {
         content.removeAllViews()
+
+        // Minimal status bar: keep the Home canvas free of duplicate branding and search controls.
         val top = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(0, dp(4), 0, dp(12))
+            setPadding(dp(2), dp(2), dp(2), dp(12))
         }
-        top.addView(label("ZIYANA", 19f, Color.WHITE, true))
-        top.addView(label(" TV", 19f, purple, true))
+        top.addView(label("GOOD TO SEE YOU", 11f, 0xFFE8DDFB.toInt(), true))
         top.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
-        top.addView(actionButton("⌕", false) { navigate("Search") }, LinearLayout.LayoutParams(dp(46), dp(42)))
         clock = label("", 12f, 0xFFF4EFFF.toInt(), true)
-        top.addView(clock.apply { setPadding(dp(16), 0, 0, 0) })
+        top.addView(clock)
         content.addView(top)
-        content.addView(heroCard(), LinearLayout.LayoutParams(-1, dp(205)).apply { topMargin = dp(4) })
-        heading("Applications", "Select an app to launch")
+
+        // Full-width artwork panel: no repeated Ziyana title or Apps/Search buttons on the right canvas.
+        content.addView(heroCard(), LinearLayout.LayoutParams(-1, dp(230)).apply { topMargin = dp(2) })
+
+        heading("Your applications", "${sortedApps().size} installed apps · Select to launch")
         addInstalledAppsRow()
-        heading("Quick access")
-        addQuickActions()
-        content.addView(actionButton("BROWSE ALL APPS  ›", true) { navigate("Apps") },
-            LinearLayout.LayoutParams(dp(200), dp(44)).apply { topMargin = dp(17) })
+
+        heading("Explore")
+        addFeatureTiles(listOf("Favorites", "Entertainment", "Tools", "Settings"))
+
+        content.addView(actionButton("VIEW ALL APPLICATIONS  ›", true) { navigate("Apps") },
+            LinearLayout.LayoutParams(dp(230), dp(44)).apply { topMargin = dp(14) })
     }
 
     private fun heroCard(): View {
@@ -308,18 +313,7 @@ class MainActivity : Activity() {
             background = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
                 intArrayOf(0xE80A0A20.toInt(), 0x880D0A28.toInt(), 0x110D0A28))
         }, FrameLayout.LayoutParams(-1, -1))
-        val controls = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(24), dp(14), dp(14), dp(14))
-        }
-        controls.addView(label("ZIYANA TV", 13f, 0xFFF0C9FF.toInt(), true))
-        val buttons = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        buttons.addView(actionButton("▦  APPS", true) { navigate("Apps") }, LinearLayout.LayoutParams(dp(116), dp(40)))
-        buttons.addView(actionButton("⌕  SEARCH", false) { navigate("Search") },
-            LinearLayout.LayoutParams(dp(116), dp(40)).apply { marginStart = dp(9) })
-        controls.addView(buttons)
-        hero.addView(controls, FrameLayout.LayoutParams(-1, -1))
+        // Artwork-only hero. The anime wallpaper is the visual focus; controls stay in navigation.
         return hero
     }
 
@@ -469,8 +463,11 @@ class MainActivity : Activity() {
                 addView(label(name, 13f, Color.WHITE, true))
                 setOnClickListener {
                     when (name) {
-                        "Watchlist" -> showMediaInfo(name)
-                        else -> showMediaInfo(name)
+                        "Favorites" -> navigate("Favorites")
+                        "Entertainment" -> navigate("Entertainment")
+                        "Tools" -> navigate("Tools")
+                        "Settings" -> navigate("Settings")
+                        else -> navigate("Apps")
                     }
                 }
             }
