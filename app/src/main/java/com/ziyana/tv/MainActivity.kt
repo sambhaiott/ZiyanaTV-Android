@@ -294,10 +294,16 @@ class MainActivity : Activity() {
             setOnClickListener { launchActivity(info) }
             setOnLongClickListener { togglePinned(info.activityInfo.packageName); true }
         }
-        card.addView(ImageView(this).apply {
+        val iconFrame = FrameLayout(this)
+        iconFrame.addView(ImageView(this).apply {
             setImageDrawable(info.loadIcon(packageManager))
             scaleType = ImageView.ScaleType.FIT_CENTER
-        }, LinearLayout.LayoutParams(dp(47), dp(47)))
+        }, FrameLayout.LayoutParams(dp(47), dp(47), Gravity.CENTER))
+        if (info.activityInfo.packageName in pinned()) {
+            iconFrame.addView(label("★", 14f, 0xFFFFD36D.toInt(), true),
+                FrameLayout.LayoutParams(dp(22), dp(22), Gravity.END or Gravity.TOP))
+        }
+        card.addView(iconFrame, LinearLayout.LayoutParams(dp(54), dp(52)))
         card.addView(label(info.loadLabel(packageManager).toString(), 11f, Color.WHITE, true).apply {
             gravity = Gravity.CENTER
             maxLines = 1
@@ -405,7 +411,7 @@ class MainActivity : Activity() {
         packages.distinct().mapNotNull { byPackage[it] }.forEach { info ->
             row.addView(appCard(info), LinearLayout.LayoutParams(dp(132), dp(112)).apply { marginEnd = dp(12) })
         }
-        if (row.childCount == 0) content.addView(label("Long-press an app to add it to Favorites.", 12f, muted))
+        if (row.childCount == 0) content.addView(label("Long-press an app to pin it to the top.", 12f, muted))
         else content.addView(HorizontalScrollView(this).apply { isHorizontalScrollBarEnabled = false; isFocusable = false; addView(row) }, LinearLayout.LayoutParams(-1, dp(120)))
     }
 
