@@ -211,6 +211,9 @@ class MainActivity : Activity() {
 
         heading("Your Apps", "Quick access to apps installed on this TV")
         addInstalledAppsRow()
+        
+        heading("Anime & Streaming", "Launch streaming apps already installed on your TV")
+        addAnimeAppsRow()
 
         heading("Explore", "Find something good to watch")
         addFeatureTiles(listOf("Anime", "Movies", "Series", "Watchlist"))
@@ -221,60 +224,39 @@ class MainActivity : Activity() {
 
     private fun heroCard(): View {
         val hero = FrameLayout(this).apply {
-            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                intArrayOf(0xFF28164B.toInt(), 0xFF472765.toInt(), 0xFF151D45.toInt()))
-                .apply { cornerRadius = dp(25).toFloat(); setStroke(dp(1), 0x66D8B7FF) }
+            background = panel(0xFF17132F.toInt(), 25, 0x88D8B7FF.toInt())
             clipToOutline = true
         }
-
-        // Decorative moon and blossom-like glow, built natively so it works offline.
-        val moon = View(this).apply {
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(0xDDF0DFFF.toInt())
-                setStroke(dp(2), 0x66FFFFFF)
-            }
+        val artwork = ImageView(this).apply {
+            setImageResource(R.drawable.anime_sakura_wallpaper)
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            contentDescription = "Anime girl under a full moon and cherry blossoms"
         }
-        val moonLp = FrameLayout.LayoutParams(dp(158), dp(158), Gravity.RIGHT or Gravity.CENTER_VERTICAL)
-        moonLp.rightMargin = dp(90)
-        hero.addView(moon, moonLp)
-
-        val glow = View(this).apply {
-            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                intArrayOf(0x00F8B9FF, 0x887D54C8.toInt(), 0x005A3C9A))
-                .apply { shape = GradientDrawable.OVAL }
-        }
-        val glowLp = FrameLayout.LayoutParams(dp(270), dp(210), Gravity.RIGHT or Gravity.BOTTOM)
-        glowLp.rightMargin = dp(5)
-        hero.addView(glow, glowLp)
-
-        val artCaption = label("✿     S A K U R A     ✧", 13f, 0xFFF5DFFF.toInt(), true)
-        val artLp = FrameLayout.LayoutParams(dp(250), dp(36), Gravity.RIGHT or Gravity.CENTER_VERTICAL)
-        artLp.rightMargin = dp(25)
-        artLp.topMargin = dp(90)
-        hero.addView(artCaption, artLp)
+        hero.addView(artwork, FrameLayout.LayoutParams(-1, -1))
+        hero.addView(View(this).apply {
+            background = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
+                intArrayOf(0xF20A0A20.toInt(), 0xC20D0A28.toInt(), 0x220D0A28))
+        }, FrameLayout.LayoutParams(-1, -1))
 
         val copy = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(25), dp(22), dp(10), dp(18))
         }
-        copy.addView(label("ZIYANA  •  FEATURED", 10f, 0xFFE6B9FF.toInt(), true))
-        copy.addView(label("Moonlit\nSakura", 34f, Color.WHITE, true).apply {
+        copy.addView(label("ZIYANA  •  ANIME NIGHT  •  4K", 10f, 0xFFF0BFFF.toInt(), true))
+        copy.addView(label("Moonlit\\nSakura", 34f, Color.WHITE, true).apply {
             setLineSpacing(0f, 0.92f)
             setPadding(0, dp(5), 0, dp(1))
         })
-        copy.addView(label("A little magic for your movie night.", 12f, 0xFFE4D8F7.toInt()))
+        copy.addView(label("Anime atmosphere. Your favourite apps. One screen.", 12f, 0xFFE4D8F7.toInt()))
         val buttons = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             setPadding(0, dp(13), 0, 0)
         }
-        buttons.addView(actionButton("▶  Open Apps", true) { navigate("Apps") },
+        buttons.addView(actionButton("▦  All Apps", true) { navigate("Apps") },
             LinearLayout.LayoutParams(dp(132), dp(42)))
-        val gap = View(this)
-        buttons.addView(gap, LinearLayout.LayoutParams(dp(9), 1))
-        buttons.addView(actionButton("Explore", false) { navigate("Movies") },
-            LinearLayout.LayoutParams(dp(105), dp(42)))
+        buttons.addView(actionButton("⌕  Search", false) { navigate("Search") },
+            LinearLayout.LayoutParams(dp(112), dp(42)).apply { marginStart = dp(9) })
         copy.addView(buttons)
         hero.addView(copy, FrameLayout.LayoutParams(-1, -1))
         return hero
@@ -304,7 +286,7 @@ class MainActivity : Activity() {
             clipToPadding = false
             addView(row)
         }
-        getApps().take(16).forEach { info ->
+        getApps().forEach { info ->
             val card = appCard(info)
             val lp = LinearLayout.LayoutParams(dp(132), dp(112))
             lp.marginEnd = dp(12)
@@ -334,6 +316,29 @@ class MainActivity : Activity() {
             setPadding(dp(4), dp(5), dp(4), 0)
         })
         return card
+    }
+
+    private fun addAnimeAppsRow() {
+        val preferred = listOf("crunchyroll", "netflix", "prime video", "disney", "youtube", "plex", "tubi", "jellyfin")
+        val installed = getApps()
+        val matches = installed.filter { app ->
+            preferred.any { key -> app.loadLabel(packageManager).toString().contains(key, true) }
+        }
+        val apps = if (matches.isNotEmpty()) matches else installed.take(6)
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val hsv = HorizontalScrollView(this).apply {
+            isHorizontalScrollBarEnabled = false
+            isFocusable = false
+            clipToPadding = false
+            addView(row)
+        }
+        apps.forEach { info ->
+            val lp = LinearLayout.LayoutParams(dp(132), dp(112))
+            lp.marginEnd = dp(12)
+            row.addView(appCard(info), lp)
+        }
+        if (apps.isEmpty()) row.addView(label("Install streaming apps from Google Play Store to see their icons here.", 12f, muted))
+        content.addView(hsv, LinearLayout.LayoutParams(-1, dp(118)))
     }
 
     private fun addFeatureTiles(names: List<String>) {
