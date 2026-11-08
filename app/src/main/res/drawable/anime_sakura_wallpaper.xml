@@ -4,22 +4,37 @@
             <gradient android:angle="135" android:startColor="#080B2B" android:centerColor="#28134F" android:endColor="#07112B" />
         </shape>
     </item>
-    <item android:gravity="top|right" android:top="38dp" android:right="220dp">
-        <shape android:shape="oval">
-            <size android:width="190dp" android:height="190dp" />
-            <solid android:color="#E8DFFF" />
-        </shape>
+    <item android:gravity="top|right" android:top="28dp" android:right="210dp">
+        <shape android:shape="oval"><size android:width="190dp" android:height="190dp"/><solid android:color="#E8DFFF"/></shape>
+    </item>
+    <item android:gravity="right|center_vertical" android:right="230dp" android:top="90dp" android:bottom="20dp">
+        <shape android:shape="oval"><size android:width="245dp" android:height="410dp"/><solid android:color="#24133F"/></shape>
+    </item>
+    <item android:gravity="right|center_vertical" android:right="300dp" android:top="125dp" android:bottom="230dp">
+        <shape android:shape="oval"><size android:width="135dp" android:height="165dp"/><solid android:color="#F2C5DA"/></shape>
+    </item>
+    <item android:gravity="right|center_vertical" android:right="285dp" android:top="80dp" android:bottom="290dp">
+        <shape android:shape="oval"><size android:width="170dp" android:height="145dp"/><solid android:color="#28143F"/></shape>
+    </item>
+    <item android:gravity="right|bottom" android:right="160dp" android:bottom="-10dp">
+        <shape android:shape="oval"><size android:width="390dp" android:height="300dp"/><solid android:color="#A66BAF"/></shape>
+    </item>
+    <item android:gravity="right|bottom" android:right="70dp" android:bottom="-80dp">
+        <shape android:shape="oval"><size android:width="410dp" android:height="250dp"/><solid android:color="#58336F"/></shape>
     </item>
     <item android:gravity="top|left" android:top="18dp" android:left="20dp">
-        <shape android:shape="oval">
-            <size android:width="22dp" android:height="22dp" />
-            <solid android:color="#FFFF9BD8" />
-        </shape>
+        <shape android:shape="oval"><size android:width="22dp" android:height="22dp"/><solid android:color="#FFFF9BD8"/></shape>
     </item>
     <item android:gravity="top|left" android:top="65dp" android:left="95dp">
-        <shape android:shape="oval">
-            <size android:width="14dp" android:height="14dp" />
-            <solid android:color="#FFFFB1E3" />
-        </shape>
+        <shape android:shape="oval"><size android:width="14dp" android:height="14dp"/><solid android:color="#FFFFB1E3"/></shape>
+    </item>
+    <item android:gravity="top|right" android:top="170dp" android:right="60dp">
+        <shape android:shape="rectangle"><size android:width="150dp" android:height="220dp"/><solid android:color="#251743"/></shape>
+    </item>
+    <item android:gravity="top|right" android:top="140dp" android:right="35dp">
+        <shape android:shape="rectangle"><size android:width="200dp" android:height="12dp"/><solid android:color="#E36CC5"/></shape>
+    </item>
+    <item android:gravity="top|right" android:top="250dp" android:right="20dp">
+        <shape android:shape="rectangle"><size android:width="220dp" android:height="12dp"/><solid android:color="#E36CC5"/></shape>
     </item>
 </layer-list>
