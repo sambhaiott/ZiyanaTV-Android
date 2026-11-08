@@ -135,8 +135,10 @@ class MainActivity : Activity() {
         }
         val scroll = ScrollView(this).apply {
             isFillViewport = true
-            clipToPadding = false
-            clipChildren = false
+            // Keep focused cards and their scale animation inside the content viewport.
+            // Without this, focus shadows can draw over the left navigation rail.
+            clipToPadding = true
+            clipChildren = true
             isFocusable = false
             setPadding(0, 0, 0, dp(8))
         }
@@ -325,8 +327,10 @@ class MainActivity : Activity() {
         val hsv = HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = false
             isFocusable = false
-            clipChildren = false
-            clipToPadding = false
+            // Clip the horizontal rail to its own viewport. Focused items scroll
+            // into view one at a time instead of drawing across the sidebar.
+            clipChildren = true
+            clipToPadding = true
             addView(row)
         }
         sortedApps().take(14).forEach { info ->
