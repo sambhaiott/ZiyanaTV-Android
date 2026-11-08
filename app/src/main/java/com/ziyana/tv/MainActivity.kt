@@ -28,8 +28,8 @@ import java.util.Date
 import java.util.Locale
 
 class MainActivity : Activity() {
-    private val purple = 0xFFB88AFF.toInt()
-    private val muted = 0xFFD8D0EE.toInt()
+    private val purple = 0xFFE0C99A.toInt()
+    private val muted = 0xFFC5C2C9.toInt()
     private lateinit var content: LinearLayout
     private lateinit var nav: LinearLayout
     private lateinit var clock: TextView
@@ -118,7 +118,7 @@ class MainActivity : Activity() {
         root.addView(wallpaper, FrameLayout.LayoutParams(-1, -1))
         root.addView(View(this).apply {
             background = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
-                intArrayOf(0xF006071B.toInt(), 0xB30B0A25.toInt(), 0x99090A20.toInt()))
+                intArrayOf(0xF006080D.toInt(), 0xC00A0C12.toInt(), 0x99090B10.toInt()))
         }, FrameLayout.LayoutParams(-1, -1))
 
         val shell = LinearLayout(this).apply {
@@ -130,8 +130,8 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(12), dp(18), dp(10), dp(18))
             background = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-                intArrayOf(0xF20B0C25.toInt(), 0xE9181536.toInt(), 0xE82B1D49.toInt()))
-                .apply { cornerRadius = dp(26).toFloat(); setStroke(dp(1), 0x447F6BB2) }
+                intArrayOf(0xF20B0D12.toInt(), 0xE9161921.toInt(), 0xE8202028.toInt()))
+                .apply { cornerRadius = dp(26).toFloat(); setStroke(dp(1), 0x557D7B76) }
         }
         val scroll = ScrollView(this).apply {
             isFillViewport = true
@@ -191,7 +191,7 @@ class MainActivity : Activity() {
             v.background = panel(
                 if (hasFocus) focused else normal,
                 radius,
-                if (hasFocus) 0xFFFFE6FF.toInt() else 0x557C68B5
+                if (hasFocus) 0xFFE8D8B8.toInt() else 0x557D7564
             )
             v.animate().cancel()
             v.animate()
@@ -229,12 +229,12 @@ class MainActivity : Activity() {
                 setPadding(dp(13), 0, dp(5), 0)
                 isFocusable = true
                 isClickable = true
-                background = panel(if (selected == name) 0xFF59458C.toInt() else 0x332A2449, 17,
-                    if (selected == name) 0xFFD9B5FF.toInt() else 0)
+                background = panel(if (selected == name) 0xFF4A463D.toInt() else 0x332A2A2A, 17,
+                    if (selected == name) 0xFFE5D2A9.toInt() else 0)
                 setOnClickListener { navigate(name) }
                 setOnFocusChangeListener { v, hasFocus ->
-                    v.background = panel(if (hasFocus || selected == name) 0xFF59458C.toInt() else 0x332A2449,
-                        17, if (hasFocus || selected == name) 0xFFD9B5FF.toInt() else 0)
+                    v.background = panel(if (hasFocus || selected == name) 0xFF4A463D.toInt() else 0x332A2A2A,
+                        17, if (hasFocus || selected == name) 0xFFE5D2A9.toInt() else 0)
                     v.animate().scaleX(if (hasFocus) 1.04f else 1f)
                         .scaleY(if (hasFocus) 1.04f else 1f).setDuration(120).start()
                 }
@@ -288,7 +288,7 @@ class MainActivity : Activity() {
         clock = label("", 13f, 0xFFFFFFFF.toInt(), true).apply {
             gravity = Gravity.CENTER
             setPadding(dp(12), dp(8), dp(12), dp(8))
-            background = panel(0xB91A1733.toInt(), 15, 0x887F6EB1.toInt())
+            background = panel(0xC016181C.toInt(), 15, 0x887C766A.toInt())
             elevation = dp(3).toFloat()
         }
         clockRow.addView(clock)
@@ -318,11 +318,11 @@ class MainActivity : Activity() {
             setColorFilter(Color.WHITE)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
             contentDescription = description
-            background = panel(0xB91A1733.toInt(), 10, 0x887F6EB1.toInt())
+            background = panel(0xC016181C.toInt(), 10, 0x887C766A.toInt())
             isFocusable = true
             isClickable = true
             setPadding(dp(7), dp(5), dp(7), dp(5))
-            focusStyle(this, 10, 0xB91A1733.toInt(), 0xFF604A98.toInt())
+            focusStyle(this, 10, 0xC016181C.toInt(), 0xFF5A5141.toInt())
             setOnClickListener { action() }
         }
 
@@ -350,12 +350,12 @@ class MainActivity : Activity() {
             typeface = Typeface.DEFAULT_BOLD
             gravity = Gravity.CENTER
             setTextColor(Color.WHITE)
-            background = panel(if (primary) 0xFF8056C9.toInt() else 0x553D315F, 18,
-                if (primary) 0xFFDDBEFF.toInt() else 0x887F6EB1.toInt())
+            background = panel(if (primary) 0xFF786B50.toInt() else 0x55403D36, 18,
+                if (primary) 0xFFE7D5AC.toInt() else 0x887C766A.toInt())
             isFocusable = true
             isClickable = true
-            focusStyle(this, 18, if (primary) 0xFF8056C9.toInt() else 0x553D315F,
-                if (primary) 0xFF9A70E3.toInt() else 0xFF51417C.toInt())
+            focusStyle(this, 18, if (primary) 0xFF786B50.toInt() else 0x55403D36,
+                if (primary) 0xFF968363.toInt() else 0xFF5B5548.toInt())
             setOnClickListener { action() }
         }
 
@@ -391,19 +391,19 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
             background = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-                intArrayOf(0xE92B2948.toInt(), 0xE9161730.toInt()))
-                .apply { cornerRadius = dp(22).toFloat(); setStroke(dp(1), 0x557F78A8) }
+                intArrayOf(0xE92B2C30.toInt(), 0xE916181C.toInt()))
+                .apply { cornerRadius = dp(22).toFloat(); setStroke(dp(1), 0x557D7769) }
             isFocusable = true
             isClickable = true
             clipChildren = false
-            focusStyle(this, 22, 0xE9161730.toInt(), 0xFF57468D.toInt())
+            focusStyle(this, 22, 0xE9161730.toInt(), 0xFF625846.toInt())
             setOnClickListener { launchActivity(info) }
             setOnLongClickListener { showAppOptions(info); true }
         }
         val iconPlate = FrameLayout(this).apply {
             background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                intArrayOf(0xFF34304F.toInt(), 0xFF201D38.toInt()))
-                .apply { cornerRadius = dp(18).toFloat(); setStroke(dp(1), 0x667F78A8) }
+                intArrayOf(0xFF33343A.toInt(), 0xFF1D1F24.toInt()))
+                .apply { cornerRadius = dp(18).toFloat(); setStroke(dp(1), 0x667D7769) }
         }
         iconPlate.addView(ImageView(this).apply {
             setImageDrawable(info.loadIcon(packageManager))
@@ -518,7 +518,7 @@ class MainActivity : Activity() {
 
     private fun addFeatureTiles(names: List<String>) {
         val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        val colors = intArrayOf(0xFF583477.toInt(), 0xFF214D72.toInt(), 0xFF6A315F.toInt(), 0xFF3D397A.toInt())
+        val colors = intArrayOf(0xFF393A3C.toInt(), 0xFF343A40.toInt(), 0xFF3B3834.toInt(), 0xFF39383F.toInt())
         val symbols = listOf("✿", "▣", "▶", "♡")
         names.forEachIndexed { i, name ->
             val tile = LinearLayout(this).apply {
@@ -526,12 +526,12 @@ class MainActivity : Activity() {
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(dp(13), dp(9), dp(8), dp(8))
                 background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                    intArrayOf(colors[i], 0xFF15152F.toInt()))
-                    .apply { cornerRadius = dp(17).toFloat(); setStroke(dp(1), 0x557C6CB0) }
+                    intArrayOf(colors[i], 0xFF17191D.toInt()))
+                    .apply { cornerRadius = dp(17).toFloat(); setStroke(dp(1), 0x557D7564) }
                 isFocusable = true
                 isClickable = true
                 focusStyle(this, 17, colors[i], 0xFF58458C.toInt())
-                addView(label(symbols[i], 22f, 0xFFF0D6FF.toInt(), true))
+                addView(label(symbols[i], 22f, 0xFFE5D7B8.toInt(), true))
                 addView(label(name, 13f, Color.WHITE, true))
                 setOnClickListener {
                     when (name) {
@@ -713,7 +713,7 @@ class MainActivity : Activity() {
             setTextColor(Color.WHITE)
             setHintTextColor(muted)
             setPadding(dp(16), dp(12), dp(16), dp(12))
-            background = panel(0xDD211C40.toInt(), 16, 0x887F6EB1.toInt())
+            background = panel(0xDD211C40.toInt(), 16, 0x887C766A.toInt())
             isFocusable = true
         }
         content.addView(input, LinearLayout.LayoutParams(-1, dp(52)).apply { topMargin = dp(18) })
