@@ -118,7 +118,7 @@ class MainActivity : Activity() {
         root.addView(wallpaper, FrameLayout.LayoutParams(-1, -1))
         root.addView(View(this).apply {
             background = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
-                intArrayOf(0xF006080D.toInt(), 0xC00A0C12.toInt(), 0x99090B10.toInt()))
+                intArrayOf(0xF0080A10.toInt(), 0xD0181718.toInt(), 0xA02A2118.toInt()))
         }, FrameLayout.LayoutParams(-1, -1))
 
         val shell = LinearLayout(this).apply {
@@ -221,7 +221,7 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER_VERTICAL
             setPadding(dp(5), dp(8), 0, dp(27))
         }
-        brand.addView(label("✦", 27f, 0xFFE4A7FF.toInt(), true))
+        brand.addView(label("✧", 27f, 0xFFE7D2A8.toInt(), true))
         brand.addView(label(" ZIYANA", 17f, Color.WHITE, true))
         brand.addView(label(" TV", 17f, purple, true))
         nav.addView(brand)
@@ -239,11 +239,11 @@ class MainActivity : Activity() {
                 setPadding(dp(13), 0, dp(5), 0)
                 isFocusable = true
                 isClickable = true
-                background = glossySurface(if (selected == name) 0xFF5A5548.toInt() else 0x6636383B,
-                    0xFF17191D.toInt(), 17, if (selected == name) 0xFFE5D2A9.toInt() else 0x557D7564)
+                background = glossySurface(if (selected == name) 0xFF65543A.toInt() else 0x66413A30,
+                    0xFF171513.toInt(), 17, if (selected == name) 0xFFE8D5AF.toInt() else 0x667D6749)
                 setOnClickListener { navigate(name) }
                 setOnFocusChangeListener { v, hasFocus ->
-                    v.background = glossySurface(if (hasFocus || selected == name) 0xFF625A49.toInt() else 0x6636383B,
+                    v.background = glossySurface(if (hasFocus || selected == name) 0xFF705B3B.toInt() else 0x66413A30,
                         0xFF17191D.toInt(), 17,
                         if (hasFocus || selected == name) 0xFFE5D2A9.toInt() else 0x557D7564)
                     v.animate().scaleX(if (hasFocus) 1.035f else 1f)
@@ -538,8 +538,8 @@ class MainActivity : Activity() {
                 background = glossySurface(colors[i], 0xFF17191D.toInt(), 17, 0x667D7564)
                 isFocusable = true
                 isClickable = true
-                focusStyle(this, 17, colors[i], 0xFF58458C.toInt())
-                addView(label(symbols[i], 22f, 0xFFE5D7B8.toInt(), true))
+                focusStyle(this, 17, colors[i], 0xFF806747.toInt())
+                addView(label(symbols[i], 22f, 0xFFE9D6B4.toInt(), true))
                 addView(label(name, 13f, Color.WHITE, true))
                 setOnClickListener {
                     when (name) {
@@ -721,7 +721,7 @@ class MainActivity : Activity() {
             setTextColor(Color.WHITE)
             setHintTextColor(muted)
             setPadding(dp(16), dp(12), dp(16), dp(12))
-            background = panel(0xDD211C40.toInt(), 16, 0x887C766A.toInt())
+            background = panel(0xDD29231B.toInt(), 16, 0x998B7656.toInt())
             isFocusable = true
         }
         content.addView(input, LinearLayout.LayoutParams(-1, dp(52)).apply { topMargin = dp(18) })
@@ -738,12 +738,12 @@ class MainActivity : Activity() {
                     gravity = Gravity.CENTER_VERTICAL
                     isFocusable = true
                     isClickable = true
-                    background = panel(0x99211D3D.toInt(), 13, 0x447F6EB1)
+                    background = panel(0x9940392E.toInt(), 13, 0x668B7655.toInt())
                     val icon = ImageView(this@MainActivity).apply { setImageDrawable(info.loadIcon(packageManager)) }
                     addView(icon, LinearLayout.LayoutParams(dp(36), dp(36)).apply { marginEnd = dp(14) })
                     addView(label(info.loadLabel(packageManager).toString(), 14f, Color.WHITE, true), LinearLayout.LayoutParams(0, -1, 1f))
                     setOnClickListener { launchActivity(info) }
-                    focusStyle(this, 13, 0x99211D3D.toInt(), 0xFF55428F.toInt())
+                    focusStyle(this, 13, 0x9940392E.toInt(), 0xFF806747.toInt())
                 }
                 results.addView(line, LinearLayout.LayoutParams(-1, dp(56)).apply { topMargin = dp(7) })
             }
