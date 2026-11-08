@@ -381,10 +381,10 @@ class MainActivity : Activity() {
         // Keep one permanent full-screen anime wallpaper; no second hero image or slideshow.
         content.addView(View(this), LinearLayout.LayoutParams(1, dp(20)))
 
-        heading("Your applications", "${sortedApps().size} installed apps · Select to launch")
+        heading("Just Program")
         addInstalledAppsRow()
 
-        heading("Watching Continue", "Continue watching from your YouTube history")
+        heading("Watching Continue")
         addWatchingContinueCard()
 
         heading("Explore")
