@@ -66,6 +66,8 @@ class MainActivity : Activity() {
         setContentView(root)
         buildNav()
         showHome()
+        // Give TV remotes a deterministic starting focus on the Home navigation item.
+        nav.getChildAt(1)?.requestFocus()
         handler.post(clockTick)
     }
 
