@@ -39,6 +39,42 @@ class MainActivity : Activity() {
     private val prefs by lazy { getSharedPreferences("ziyana_launcher", MODE_PRIVATE) }
     private fun pinned() = prefs.getStringSet("pinned_apps", emptySet())?.toMutableSet() ?: mutableSetOf()
     private fun favorites() = prefs.getStringSet("favorite_apps", emptySet())?.toMutableSet() ?: mutableSetOf()
+    private fun hiddenApps() = prefs.getStringSet("hidden_apps", emptySet())?.toMutableSet() ?: mutableSetOf()
+    private fun toggleHidden(pkg: String) {
+        val items = hiddenApps()
+        val hidden = if (items.contains(pkg)) { items.remove(pkg); false } else { items.add(pkg); true }
+        prefs.edit().putStringSet("hidden_apps", items).apply()
+        toast(if (hidden) "App hidden from launcher" else "App is visible again")
+        when (selected) {
+            "Home" -> showHome()
+            "Favorites" -> showFavoritesPage()
+            "Apps", "Entertainment", "Tools" -> showAppsPage()
+        }
+    }
+    private fun manageHiddenApps() {
+        val apps = getApps().sortedBy { it.loadLabel(packageManager).toString().lowercase(Locale.getDefault()) }
+        if (apps.isEmpty()) { toast("No installed apps found"); return }
+        val hidden = hiddenApps()
+        val names = apps.map { it.loadLabel(packageManager).toString() }.toTypedArray()
+        val checked = apps.map { it.activityInfo.packageName in hidden }.toBooleanArray()
+        AlertDialog.Builder(this)
+            .setTitle("Hidden apps")
+            .setMultiChoiceItems(names, checked) { _, which, isChecked ->
+                val pkg = apps[which].activityInfo.packageName
+                val current = hiddenApps()
+                if (isChecked) current.add(pkg) else current.remove(pkg)
+                prefs.edit().putStringSet("hidden_apps", current).apply()
+            }
+            .setPositiveButton("Done") { _, _ ->
+                when (selected) {
+                    "Home" -> showHome()
+                    "Favorites" -> showFavoritesPage()
+                    else -> showAppsPage()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
     private fun toggleFavorite(pkg: String) {
         val items = favorites()
         val added = if (items.contains(pkg)) { items.remove(pkg); false } else { items.add(pkg); true }
@@ -354,7 +390,7 @@ class MainActivity : Activity() {
 
     private fun showFavoritesPage() {
         content.removeAllViews()
-        val apps = getApps().filter { it.activityInfo.packageName in favorites() }
+        val apps = sortedApps().filter { it.activityInfo.packageName in favorites() }
             .sortedBy { it.loadLabel(packageManager).toString().lowercase(Locale.getDefault()) }
         content.addView(label("Favorites", 27f, Color.WHITE, true).apply { setPadding(0, dp(8), 0, dp(4)) })
         content.addView(label("Your starred apps, ready to launch", 12f, muted))
@@ -382,7 +418,8 @@ class MainActivity : Activity() {
                     1 -> togglePinned(pkg)
                     2 -> launchActivity(info)
                     3 -> openAppInfo(pkg)
-                    4 -> uninstallApp(pkg)
+                    4 -> toggleHidden(pkg)
+                    5 -> uninstallApp(pkg)
                 }
             }.show()
     }
@@ -499,9 +536,11 @@ class MainActivity : Activity() {
 
     private fun sortedApps(): List<android.content.pm.ResolveInfo> {
         val pins = pinned()
-        return getApps().sortedWith(compareByDescending<android.content.pm.ResolveInfo> {
-            it.activityInfo.packageName in pins
-        }.thenBy { it.loadLabel(packageManager).toString().trim().lowercase(Locale.getDefault()) })
+        val hidden = hiddenApps()
+        return getApps().filter { it.activityInfo.packageName !in hidden }
+            .sortedWith(compareByDescending<android.content.pm.ResolveInfo> {
+                it.activityInfo.packageName in pins
+            }.thenBy { it.loadLabel(packageManager).toString().trim().lowercase(Locale.getDefault()) })
     }
 
     private fun matchesFilter(info: android.content.pm.ResolveInfo, filter: String): Boolean {
@@ -519,13 +558,21 @@ class MainActivity : Activity() {
     }
 
     private fun addAppGrid(apps: List<android.content.pm.ResolveInfo>) {
-        var row = newAppRow()
+        // Adapt the app drawer to the TV's actual logical screen width.
+        val screenDp = (resources.displayMetrics.widthPixels / resources.displayMetrics.density).toInt()
+        val availableDp = (screenDp - 158 - 56 - 36).coerceAtLeast(640)
+        val columns = (availableDp / 154).coerceIn(4, 8)
+        var row = newAppRow().apply { clipChildren = false; clipToPadding = false }
         apps.forEachIndexed { index, info ->
-            if (index > 0 && index % 5 == 0) { content.addView(row); row = newAppRow() }
-            row.addView(appCard(info), LinearLayout.LayoutParams(0, dp(116), 1f).apply { setMargins(0, dp(12), dp(12), 0) })
+            if (index > 0 && index % columns == 0) {
+                content.addView(row)
+                row = newAppRow().apply { clipChildren = false; clipToPadding = false }
+            }
+            row.addView(appCard(info), LinearLayout.LayoutParams(0, dp(116), 1f)
+                .apply { setMargins(0, dp(12), dp(12), 0) })
         }
         if (row.childCount > 0) {
-            while (row.childCount < 5) row.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
+            while (row.childCount < columns) row.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
             content.addView(row)
         }
     }
@@ -656,7 +703,8 @@ class MainActivity : Activity() {
             "Sound settings" to { openSystemPanel(android.provider.Settings.ACTION_SOUND_SETTINGS) },
             "Date and time" to { openSystemPanel(android.provider.Settings.ACTION_DATE_SETTINGS) },
             "Accessibility" to { openSystemPanel(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS) },
-            "Refresh installed apps" to { if (selected == "Settings") { showSettings() }; toast("App list refreshed") },
+            "Manage hidden apps" to { manageHiddenApps() },
+            "Refresh installed apps" to { if (selected == "Settings") { showSettings() }; toast("Installed apps refreshed") },
             "Choose Home launcher" to { toast("Press the TV remote Home button and select Ziyana TV if your TV offers the choice.") },
             "About Ziyana TV" to { AlertDialog.Builder(this).setTitle("Ziyana TV").setMessage("Premium Android TV launcher\\nVersion 1.2").setPositiveButton("OK", null).show() }
         )
