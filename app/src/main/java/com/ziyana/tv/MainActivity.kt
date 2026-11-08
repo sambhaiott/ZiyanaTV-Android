@@ -34,6 +34,17 @@ class MainActivity : Activity() {
     private var appFilter = "All"
     private val prefs by lazy { getSharedPreferences("ziyana_launcher", MODE_PRIVATE) }
     private fun pinned() = prefs.getStringSet("pinned_apps", emptySet())?.toMutableSet() ?: mutableSetOf()
+    private fun favorites() = prefs.getStringSet("favorite_apps", emptySet())?.toMutableSet() ?: mutableSetOf()
+    private fun toggleFavorite(pkg: String) {
+        val items = favorites()
+        val added = if (items.contains(pkg)) { items.remove(pkg); false } else { items.add(pkg); true }
+        prefs.edit().putStringSet("favorite_apps", items).apply()
+        toast(if (added) "Added to Favorites" else "Removed from Favorites")
+        if (selected == "Favorites") showFavoritesPage()
+        else if (selected == "Apps" || selected == "Home" || selected == "Entertainment" || selected == "Tools") {
+            if (selected == "Home") showHome() else showAppsPage()
+        }
+    }
     private fun togglePinned(pkg: String) {
         val items = pinned()
         val added = if (items.contains(pkg)) { items.remove(pkg); false } else { items.add(pkg); true }
@@ -145,7 +156,7 @@ class MainActivity : Activity() {
         nav.addView(brand)
 
         val items = listOf(
-            "⌂" to "Home", "⌕" to "Search", "▦" to "Apps",
+            "⌂" to "Home", "⌕" to "Search", "▦" to "Apps", "★" to "Favorites",
             "▶" to "Entertainment", "▧" to "Tools", "⚙" to "Settings"
         )
         items.forEach { (symbol, name) ->
@@ -179,7 +190,8 @@ class MainActivity : Activity() {
         buildNav()
         when (name) {
             "Home" -> showHome()
-            "Apps" -> showAppsPage()
+            "Apps" -> { appFilter = "All"; showAppsPage() }
+            "Favorites" -> showFavoritesPage()
             "Entertainment" -> { appFilter = "Entertainment"; showAppsPage() }
             "Tools" -> { appFilter = "Tools"; showAppsPage() }
             "Settings" -> showSettings()
@@ -292,14 +304,14 @@ class MainActivity : Activity() {
             isClickable = true
             focusStyle(this, 17, 0xE91B1A38.toInt(), 0xFF55428F.toInt())
             setOnClickListener { launchActivity(info) }
-            setOnLongClickListener { togglePinned(info.activityInfo.packageName); true }
+            setOnLongClickListener { showAppOptions(info); true }
         }
         val iconFrame = FrameLayout(this)
         iconFrame.addView(ImageView(this).apply {
             setImageDrawable(info.loadIcon(packageManager))
             scaleType = ImageView.ScaleType.FIT_CENTER
         }, FrameLayout.LayoutParams(dp(47), dp(47), Gravity.CENTER))
-        if (info.activityInfo.packageName in pinned()) {
+        if (info.activityInfo.packageName in favorites()) {
             iconFrame.addView(label("★", 14f, 0xFFFFD36D.toInt(), true),
                 FrameLayout.LayoutParams(dp(22), dp(22), Gravity.END or Gravity.TOP))
         }
@@ -310,6 +322,39 @@ class MainActivity : Activity() {
             setPadding(dp(4), dp(5), dp(4), 0)
         })
         return card
+    }
+
+    private fun showFavoritesPage() {
+        content.removeAllViews()
+        val apps = getApps().filter { it.activityInfo.packageName in favorites() }
+            .sortedBy { it.loadLabel(packageManager).toString().lowercase(Locale.getDefault()) }
+        content.addView(label("Favorites", 27f, Color.WHITE, true).apply { setPadding(0, dp(8), 0, dp(4)) })
+        content.addView(label("Your starred apps, ready to launch", 12f, muted))
+        if (apps.isEmpty()) {
+            content.addView(label("No favorites yet. Open Apps and long-press an app to add it here.", 14f, muted).apply {
+                setPadding(0, dp(24), 0, 0)
+            })
+        } else addAppGrid(apps)
+    }
+
+    private fun showAppOptions(info: android.content.pm.ResolveInfo) {
+        val pkg = info.activityInfo.packageName
+        val isFavorite = pkg in favorites()
+        val isPinned = pkg in pinned()
+        val actions = arrayOf(
+            if (isFavorite) "Remove from Favorites" else "Add to Favorites",
+            if (isPinned) "Unpin from top" else "Pin to top",
+            "Open app"
+        )
+        AlertDialog.Builder(this)
+            .setTitle(info.loadLabel(packageManager).toString())
+            .setItems(actions) { _, which ->
+                when (which) {
+                    0 -> toggleFavorite(pkg)
+                    1 -> togglePinned(pkg)
+                    2 -> launchActivity(info)
+                }
+            }.show()
     }
 
     private fun addAnimeAppsRow() {
