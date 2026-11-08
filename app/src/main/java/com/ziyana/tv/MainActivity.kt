@@ -19,6 +19,9 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -32,6 +35,7 @@ class MainActivity : Activity() {
     private lateinit var clock: TextView
     private var selected = "Home"
     private var appFilter = "All"
+    private var searchQuery = ""
     private val prefs by lazy { getSharedPreferences("ziyana_launcher", MODE_PRIVATE) }
     private fun pinned() = prefs.getStringSet("pinned_apps", emptySet())?.toMutableSet() ?: mutableSetOf()
     private fun favorites() = prefs.getStringSet("favorite_apps", emptySet())?.toMutableSet() ?: mutableSetOf()
@@ -197,6 +201,9 @@ class MainActivity : Activity() {
             "Settings" -> showSettings()
             "Search" -> showSearch()
         }
+        content.alpha = 0f
+        content.translationY = dp(9).toFloat()
+        content.animate().alpha(1f).translationY(0f).setDuration(190).start()
     }
 
     private fun heading(title: String, subtitle: String? = null) {
@@ -344,7 +351,7 @@ class MainActivity : Activity() {
         val actions = arrayOf(
             if (isFavorite) "Remove from Favorites" else "Add to Favorites",
             if (isPinned) "Unpin from top" else "Pin to top",
-            "Open app"
+            "Open app", "App information", "Uninstall app"
         )
         AlertDialog.Builder(this)
             .setTitle(info.loadLabel(packageManager).toString())
@@ -353,6 +360,8 @@ class MainActivity : Activity() {
                     0 -> toggleFavorite(pkg)
                     1 -> togglePinned(pkg)
                     2 -> launchActivity(info)
+                    3 -> openAppInfo(pkg)
+                    4 -> uninstallApp(pkg)
                 }
             }.show()
     }
@@ -414,7 +423,14 @@ class MainActivity : Activity() {
     private fun addQuickActions() {
         val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         listOf("Apps" to "▦", "Live TV" to "▣", "YouTube" to "▶", "Settings" to "⚙").forEach { (name, symbol) ->
-            row.addView(actionButton("$symbol  $name", false) { navigate(name) },
+            row.addView(actionButton("$symbol  $name", false) {
+                when (name) {
+                    "Apps" -> navigate("Apps")
+                    "Settings" -> navigate("Settings")
+                    "YouTube" -> launchFirstMatching(listOf("YouTube"))
+                    "Live TV" -> launchFirstMatching(listOf("Live TV", "Live Channels", "TV"))
+                }
+            },
                 LinearLayout.LayoutParams(dp(125), dp(43)).apply { marginEnd = dp(10) })
         }
         content.addView(row)
@@ -497,7 +513,8 @@ class MainActivity : Activity() {
         super.onResume()
         if (::content.isInitialized) when (selected) {
             "Home" -> showHome()
-            "Apps" -> showAppsPage()
+            "Apps", "Entertainment", "Tools" -> showAppsPage()
+            "Favorites" -> showFavoritesPage()
         }
     }
 
@@ -543,19 +560,63 @@ class MainActivity : Activity() {
     }
 
     private fun showSearch() {
+        clearPage("Search", "Find and launch any installed application")
         val input = EditText(this).apply {
-            hint = "Search installed apps"
+            hint = "Type an app name…"
             setSingleLine(true)
+            textSize = 17f
+            setTextColor(Color.WHITE)
+            setHintTextColor(muted)
+            setPadding(dp(16), dp(12), dp(16), dp(12))
+            background = panel(0xDD211C40.toInt(), 16, 0x887F6EB1.toInt())
+            isFocusable = true
         }
-        AlertDialog.Builder(this).setTitle("Ziyana Search").setView(input)
-            .setPositiveButton("Search") { _, _ ->
-                val query = input.text.toString().trim()
-                val match = getApps().firstOrNull {
-                    it.loadLabel(packageManager).toString().contains(query, true)
+        content.addView(input, LinearLayout.LayoutParams(-1, dp(52)).apply { topMargin = dp(18) })
+        val results = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        content.addView(results, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(14) })
+        fun render(query: String) {
+            results.removeAllViews()
+            val found = getApps().filter { it.loadLabel(packageManager).toString().contains(query.trim(), true) }
+            results.addView(label(if (query.isBlank()) "${getApps().size} installed apps" else "${found.size} results", 12f, muted))
+            if (found.isEmpty()) results.addView(label("No matching app found.", 14f, muted).apply { setPadding(0, dp(18), 0, 0) })
+            else found.take(30).forEach { info ->
+                val line = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = Gravity.CENTER_VERTICAL
+                    isFocusable = true
+                    isClickable = true
+                    background = panel(0x99211D3D.toInt(), 13, 0x447F6EB1)
+                    val icon = ImageView(this@MainActivity).apply { setImageDrawable(info.loadIcon(packageManager)) }
+                    addView(icon, LinearLayout.LayoutParams(dp(36), dp(36)).apply { marginEnd = dp(14) })
+                    addView(label(info.loadLabel(packageManager).toString(), 14f, Color.WHITE, true), LinearLayout.LayoutParams(0, -1, 1f))
+                    setOnClickListener { launchActivity(info) }
+                    focusStyle(this, 13, 0x99211D3D.toInt(), 0xFF55428F.toInt())
                 }
-                if (match != null) launchActivity(match)
-                else { showAppsPage(); toast("No matching app found") }
-            }.setNegativeButton("Cancel", null).show()
+                results.addView(line, LinearLayout.LayoutParams(-1, dp(56)).apply { topMargin = dp(7) })
+            }
+        }
+        render("")
+        input.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { render(s?.toString() ?: "") }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+        input.requestFocus()
+    }
+
+    private fun openAppInfo(pkg: String) {
+        try { startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:$pkg"))) }
+        catch (_: Exception) { toast("App information unavailable") }
+    }
+
+    private fun uninstallApp(pkg: String) {
+        try { startActivity(Intent(Intent.ACTION_DELETE, android.net.Uri.parse("package:$pkg"))) }
+        catch (_: Exception) { toast("Uninstall is not available for this app") }
+    }
+
+    private fun openSystemPanel(action: String) {
+        try { startActivity(Intent(action)) }
+        catch (_: Exception) { try { startActivity(Intent(android.provider.Settings.ACTION_SETTINGS)) } catch (_: Exception) { toast("This setting is unavailable on this TV") } }
     }
 
     private fun showMediaInfo(section: String) {
@@ -568,10 +629,15 @@ class MainActivity : Activity() {
     private fun showSettings() {
         clearPage("Settings", "Launcher and device controls")
         val options: List<Pair<String, () -> Unit>> = listOf(
-            "Android system settings" to { try { startActivity(Intent(android.provider.Settings.ACTION_SETTINGS)) } catch (_: Exception) { toast("Settings unavailable") } },
-            "Refresh installed apps" to { showAppsPage(); toast("App list refreshed") },
-            "About Ziyana TV" to { AlertDialog.Builder(this).setTitle("Ziyana TV").setMessage("Premium Android TV launcher\\nVersion 1.1").setPositiveButton("OK", null).show() },
-            "Choose Home launcher" to { toast("Press the TV remote Home button and select Ziyana TV if your TV offers the choice.") }
+            "Android system settings" to { openSystemPanel(android.provider.Settings.ACTION_SETTINGS) },
+            "Network / Wi-Fi settings" to { openSystemPanel(android.provider.Settings.ACTION_WIFI_SETTINGS) },
+            "Display settings" to { openSystemPanel(android.provider.Settings.ACTION_DISPLAY_SETTINGS) },
+            "Sound settings" to { openSystemPanel(android.provider.Settings.ACTION_SOUND_SETTINGS) },
+            "Date and time" to { openSystemPanel(android.provider.Settings.ACTION_DATE_SETTINGS) },
+            "Accessibility" to { openSystemPanel(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS) },
+            "Refresh installed apps" to { if (selected == "Settings") { showSettings() }; toast("App list refreshed") },
+            "Choose Home launcher" to { toast("Press the TV remote Home button and select Ziyana TV if your TV offers the choice.") },
+            "About Ziyana TV" to { AlertDialog.Builder(this).setTitle("Ziyana TV").setMessage("Premium Android TV launcher\\nVersion 1.2").setPositiveButton("OK", null).show() }
         )
         options.forEach { (title, action) ->
             content.addView(actionButton(title, false, action), LinearLayout.LayoutParams(dp(310), dp(48)).apply { topMargin = dp(12) })
