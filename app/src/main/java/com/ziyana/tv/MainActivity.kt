@@ -334,21 +334,65 @@ class MainActivity : Activity() {
         }
 
     private fun addInstalledAppsRow() {
-        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            clipChildren = false
+            clipToPadding = false
+            setPadding(dp(4), dp(8), dp(8), dp(8))
+        }
         val hsv = HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = false
             isFocusable = false
+            clipChildren = false
             clipToPadding = false
             addView(row)
         }
-        sortedApps().take(12).forEach { info ->
-            val card = appCard(info)
-            val lp = LinearLayout.LayoutParams(dp(132), dp(112))
-            lp.marginEnd = dp(12)
+        sortedApps().take(14).forEach { info ->
+            val card = homeAppCard(info)
+            val lp = LinearLayout.LayoutParams(dp(154), dp(136))
+            lp.marginEnd = dp(16)
             row.addView(card, lp)
         }
         if (row.childCount == 0) row.addView(label("No apps found. Install apps from Google Play.", 13f, muted))
-        content.addView(hsv, LinearLayout.LayoutParams(-1, dp(118)))
+        content.addView(hsv, LinearLayout.LayoutParams(-1, dp(152)))
+    }
+
+    // Large, authentic installed-app icons in an Apple TV-inspired horizontal app rail.
+    private fun homeAppCard(info: android.content.pm.ResolveInfo): LinearLayout {
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            background = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                intArrayOf(0xE92B2948.toInt(), 0xE9161730.toInt()))
+                .apply { cornerRadius = dp(22).toFloat(); setStroke(dp(1), 0x557F78A8) }
+            isFocusable = true
+            isClickable = true
+            clipChildren = false
+            focusStyle(this, 22, 0xE9161730.toInt(), 0xFF57468D.toInt())
+            setOnClickListener { launchActivity(info) }
+            setOnLongClickListener { showAppOptions(info); true }
+        }
+        val iconPlate = FrameLayout(this).apply {
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                intArrayOf(0xFF34304F.toInt(), 0xFF201D38.toInt()))
+                .apply { cornerRadius = dp(18).toFloat(); setStroke(dp(1), 0x667F78A8) }
+        }
+        iconPlate.addView(ImageView(this).apply {
+            setImageDrawable(info.loadIcon(packageManager))
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            contentDescription = info.loadLabel(packageManager).toString()
+        }, FrameLayout.LayoutParams(dp(64), dp(64), Gravity.CENTER))
+        card.addView(iconPlate, LinearLayout.LayoutParams(dp(78), dp(78)))
+        card.addView(label(info.loadLabel(packageManager).toString(), 12f, Color.WHITE, true).apply {
+            gravity = Gravity.CENTER
+            maxLines = 1
+            ellipsize = android.text.TextUtils.TruncateAt.END
+            setPadding(dp(5), dp(8), dp(5), 0)
+        }, LinearLayout.LayoutParams(-1, dp(27)))
+        if (info.activityInfo.packageName in favorites()) {
+            card.addView(label("★", 10f, 0xFFFFD36D.toInt(), true))
+        }
+        return card
     }
 
     private fun appCard(info: android.content.pm.ResolveInfo): LinearLayout {
