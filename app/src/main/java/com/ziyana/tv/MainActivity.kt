@@ -3,6 +3,7 @@ package com.ziyana.tv
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
+import android.speech.RecognizerIntent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -36,6 +37,8 @@ class MainActivity : Activity() {
     private var selected = "Home"
     private var appFilter = "All"
     private var searchQuery = ""
+    private var pendingVoiceQuery = ""
+    private val voiceRequestCode = 41
     private val prefs by lazy { getSharedPreferences("ziyana_launcher", MODE_PRIVATE) }
     private fun pinned() = prefs.getStringSet("pinned_apps", emptySet())?.toMutableSet() ?: mutableSetOf()
     private fun favorites() = prefs.getStringSet("favorite_apps", emptySet())?.toMutableSet() ?: mutableSetOf()
@@ -318,12 +321,42 @@ class MainActivity : Activity() {
             marginEnd = dp(6)
         })
 
+        val voiceControl = statusIcon(android.R.drawable.ic_btn_speak_now, "Voice search") { startVoiceSearch() }
+        controlsRow.addView(voiceControl, LinearLayout.LayoutParams(dp(30), dp(27)).apply {
+            marginEnd = dp(6)
+        })
+
         val settingsControl = statusIcon(R.drawable.ic_settings, "Settings") { navigate("Settings") }
         controlsRow.addView(settingsControl, LinearLayout.LayoutParams(dp(30), dp(27)))
         header.addView(controlsRow, LinearLayout.LayoutParams(-1, -2))
 
         content.addView(header, LinearLayout.LayoutParams(-1, -2))
         clock.text = SimpleDateFormat("h:mm a  •  EEE, MMM d", Locale.getDefault()).format(Date())
+    }
+
+    private fun startVoiceSearch() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toLanguageTag())
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak an app name")
+        }
+        try {
+            startActivityForResult(intent, voiceRequestCode)
+        } catch (_: Exception) {
+            toast("Voice search is not available on this TV")
+        }
+    }
+
+    @Deprecated("Deprecated by Android, retained for broad Android TV compatibility")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == voiceRequestCode && resultCode == RESULT_OK) {
+            val spoken = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull().orEmpty()
+            if (spoken.isNotBlank()) {
+                pendingVoiceQuery = spoken
+                navigate("Search")
+            }
+        }
     }
 
     private fun statusIcon(iconRes: Int, description: String, action: () -> Unit): ImageView =
@@ -725,6 +758,11 @@ class MainActivity : Activity() {
             isFocusable = true
         }
         content.addView(input, LinearLayout.LayoutParams(-1, dp(52)).apply { topMargin = dp(18) })
+        if (pendingVoiceQuery.isNotBlank()) {
+            input.setText(pendingVoiceQuery)
+            input.setSelection(input.text.length)
+            pendingVoiceQuery = ""
+        }
         val results = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         content.addView(results, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(14) })
         fun render(query: String) {
