@@ -506,7 +506,7 @@ class MainActivity : Activity() {
     }
 
     private fun showAppsPage() {
-        clearPage("Applications  ·  ${getApps().size}", "Choose a category or open any installed app")
+        clearPage("Applications  ·  ${sortedApps().size}", "Choose a category or open any installed app")
         val filters = listOf("All", "Entertainment", "Tools", "System")
         val filterRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         filters.forEach { filter ->
@@ -624,8 +624,12 @@ class MainActivity : Activity() {
     }
 
     private fun launchFirstMatching(words: List<String>) {
-        val found = getApps().firstOrNull { info ->
-            words.any { info.loadLabel(packageManager).toString().contains(it, true) }
+        val apps = getApps()
+        // Respect requested priority: specific Live TV names before generic TV matches.
+        val found = words.firstNotNullOfOrNull { word ->
+            apps.firstOrNull { info ->
+                info.loadLabel(packageManager).toString().contains(word, true)
+            }
         }
         if (found != null) launchActivity(found) else showAppsPage()
     }
@@ -647,8 +651,8 @@ class MainActivity : Activity() {
         content.addView(results, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(14) })
         fun render(query: String) {
             results.removeAllViews()
-            val found = getApps().filter { it.loadLabel(packageManager).toString().contains(query.trim(), true) }
-            results.addView(label(if (query.isBlank()) "${getApps().size} installed apps" else "${found.size} results", 12f, muted))
+            val found = sortedApps().filter { it.loadLabel(packageManager).toString().contains(query.trim(), true) }
+            results.addView(label(if (query.isBlank()) "${sortedApps().size} visible apps" else "${found.size} results", 12f, muted))
             if (found.isEmpty()) results.addView(label("No matching app found.", 14f, muted).apply { setPadding(0, dp(18), 0, 0) })
             else found.take(30).forEach { info ->
                 val line = LinearLayout(this).apply {
@@ -707,7 +711,7 @@ class MainActivity : Activity() {
             "Date and time" to { openSystemPanel(android.provider.Settings.ACTION_DATE_SETTINGS) },
             "Accessibility" to { openSystemPanel(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS) },
             "Manage hidden apps" to { manageHiddenApps() },
-            "Refresh installed apps" to { if (selected == "Settings") { showSettings() }; toast("Installed apps refreshed") },
+            "Refresh installed apps" to { when (selected) { "Home" -> showHome(); "Apps", "Entertainment", "Tools" -> showAppsPage(); "Favorites" -> showFavoritesPage(); "Search" -> showSearch(); else -> showSettings() }; toast("App list refreshed") },
             "Choose Home launcher" to { toast("Press the TV remote Home button and select Ziyana TV if your TV offers the choice.") },
             "About Ziyana TV" to { AlertDialog.Builder(this).setTitle("Ziyana TV").setMessage("Premium Android TV launcher\\nVersion 1.2").setPositiveButton("OK", null).show() }
         )
