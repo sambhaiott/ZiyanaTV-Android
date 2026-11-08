@@ -1,40 +1,57 @@
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <shape android:shape="rectangle">
-            <gradient android:angle="135" android:startColor="#080B2B" android:centerColor="#28134F" android:endColor="#07112B" />
-        </shape>
-    </item>
-    <item android:gravity="top|right" android:top="28dp" android:right="210dp">
-        <shape android:shape="oval"><size android:width="190dp" android:height="190dp"/><solid android:color="#E8DFFF"/></shape>
-    </item>
-    <item android:gravity="right|center_vertical" android:right="230dp" android:top="90dp" android:bottom="20dp">
-        <shape android:shape="oval"><size android:width="245dp" android:height="410dp"/><solid android:color="#24133F"/></shape>
-    </item>
-    <item android:gravity="right|center_vertical" android:right="300dp" android:top="125dp" android:bottom="230dp">
-        <shape android:shape="oval"><size android:width="135dp" android:height="165dp"/><solid android:color="#F2C5DA"/></shape>
-    </item>
-    <item android:gravity="right|center_vertical" android:right="285dp" android:top="80dp" android:bottom="290dp">
-        <shape android:shape="oval"><size android:width="170dp" android:height="145dp"/><solid android:color="#28143F"/></shape>
-    </item>
-    <item android:gravity="right|bottom" android:right="160dp" android:bottom="-10dp">
-        <shape android:shape="oval"><size android:width="390dp" android:height="300dp"/><solid android:color="#A66BAF"/></shape>
-    </item>
-    <item android:gravity="right|bottom" android:right="70dp" android:bottom="-80dp">
-        <shape android:shape="oval"><size android:width="410dp" android:height="250dp"/><solid android:color="#58336F"/></shape>
-    </item>
-    <item android:gravity="top|left" android:top="18dp" android:left="20dp">
-        <shape android:shape="oval"><size android:width="22dp" android:height="22dp"/><solid android:color="#FFFF9BD8"/></shape>
-    </item>
-    <item android:gravity="top|left" android:top="65dp" android:left="95dp">
-        <shape android:shape="oval"><size android:width="14dp" android:height="14dp"/><solid android:color="#FFFFB1E3"/></shape>
-    </item>
-    <item android:gravity="top|right" android:top="170dp" android:right="60dp">
-        <shape android:shape="rectangle"><size android:width="150dp" android:height="220dp"/><solid android:color="#251743"/></shape>
-    </item>
-    <item android:gravity="top|right" android:top="140dp" android:right="35dp">
-        <shape android:shape="rectangle"><size android:width="200dp" android:height="12dp"/><solid android:color="#E36CC5"/></shape>
-    </item>
-    <item android:gravity="top|right" android:top="250dp" android:right="20dp">
-        <shape android:shape="rectangle"><size android:width="220dp" android:height="12dp"/><solid android:color="#E36CC5"/></shape>
-    </item>
-</layer-list>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="16dp"
+    android:height="9dp"
+    android:viewportWidth="1920"
+    android:viewportHeight="1080">
+    <path android:fillColor="#09091F" android:pathData="M0,0h1920v1080h-1920z"/>
+    <path android:fillColor="#17133B" android:pathData="M0,0h1920v610c-260,-95 -420,-70 -650,10c-260,90 -430,10 -640,-35C390,530 190,600 0,680z"/>
+    <path android:fillColor="#D9C8F2" android:pathData="M1400,110a205,205 0,1 0,0.1 0z"/>
+    <path android:fillColor="#B8A5D8" android:pathData="M1485,80c-105,28 -170,130 -155,235c12,80 72,145 150,164c-125,18 -235,-75 -245,-200c-12,-135 105,-245 250,-199z"/>
+    <path android:fillColor="#28204D" android:pathData="M0,690l170,-150 140,95 190,-210 190,220 160,-110 170,140 180,-170 150,150 180,-120 200,180v275h-1920z"/>
+    <path android:fillColor="#12152F" android:pathData="M0,820l230,-120 170,80 210,-150 230,145 190,-110 190,115 220,-150 230,130 250,-95v415h-1920z"/>
+    <path android:fillColor="#302044" android:pathData="M0,900c260,-70 470,-20 700,35c220,52 400,10 600,-40c230,-58 410,-45 620,20v165h-1920z"/>
+    <path android:fillColor="#5C3C78" android:pathData="M0,990c300,-70 480,-10 700,35c260,55 450,20 650,-20c210,-42 380,-25 570,10v65h-1920z"/>
+    <!-- Sakura branch canopy -->
+    <path android:fillColor="#4B2A5D" android:pathData="M-40,0h150c100,110 155,180 250,260c90,75 150,120 260,160c-110,-5 -210,-50 -300,-115C210,225 120,130 -40,70z"/>
+    <path android:fillColor="#4B2A5D" android:pathData="M1920,0h-170c-110,115 -190,190 -310,245c-75,35 -150,55 -245,60c95,30 190,20 285,-15c175,-65 270,-165 440,-225z"/>
+    <path android:fillColor="#6E3B75" android:pathData="M100,0c80,100 155,160 270,225c-90,-85 -150,-155 -190,-225z"/>
+    <path android:fillColor="#6E3B75" android:pathData="M1740,0c-80,90 -150,145 -260,205c90,-75 150,-140 185,-205z"/>
+    <!-- blossoms -->
+    <path android:fillColor="#F4B9DE" android:pathData="M150,105c-38,-50 28,-88 55,-38c35,-50 92,-8 52,40c56,5 45,72 -12,68c-18,55 -85,37 -78,-18c-55,15 -73,-40 -17,-52z"/>
+    <path android:fillColor="#FFD9EE" android:pathData="M265,245c-28,-35 18,-64 39,-28c27,-37 67,-6 39,29c42,4 34,52 -9,50c-14,40 -62,27 -57,-13c-40,10 -53,-29 -12,-38z"/>
+    <path android:fillColor="#F4B9DE" android:pathData="M1780,115c-38,-50 28,-88 55,-38c35,-50 92,-8 52,40c56,5 45,72 -12,68c-18,55 -85,37 -78,-18c-55,15 -73,-40 -17,-52z"/>
+    <path android:fillColor="#FFD9EE" android:pathData="M1650,255c-28,-35 18,-64 39,-28c27,-37 67,-6 39,29c42,4 34,52 -9,50c-14,40 -62,27 -57,-13c-40,10 -53,-29 -12,-38z"/>
+    <path android:fillColor="#E99ACD" android:pathData="M480,300c-24,-31 16,-55 34,-24c23,-32 58,-5 34,25c36,3 29,45 -8,43c-12,34 -53,23 -49,-11c-34,9 -45,-25 -11,-33z"/>
+    <path android:fillColor="#F6C9E8" android:pathData="M1880,410c-22,-28 14,-50 31,-22c21,-29 53,-5 31,23c33,3 26,41 -7,39c-11,31 -48,21 -45,-10c-31,8 -41,-23 -10,-30z"/>
+    <!-- anime girl silhouette, profile facing left -->
+    <path android:fillColor="#171026" android:pathData="M1260,1080c-10,-165 20,-275 105,-350c55,-49 125,-70 220,-70c105,0 195,45 255,120c55,70 80,175 80,300z"/>
+    <path android:fillColor="#3B2458" android:pathData="M1335,1080c15,-150 65,-260 160,-330c60,-45 120,-55 190,-45c-95,75 -105,165 -70,245c-90,35 -145,80 -170,130z"/>
+    <path android:fillColor="#E8C6D8" android:pathData="M1375,405c-20,-115 45,-205 155,-220c100,-14 180,55 190,155c10,90 -30,165 -105,200c-70,32 -165,5 -210,-55c-20,-25 -30,-50 -30,-80z"/>
+    <path android:fillColor="#F4D9E7" android:pathData="M1385,420c-15,-110 50,-190 145,-205c85,-12 150,35 175,110c-40,-45 -75,-65 -115,-65c-65,0 -90,45 -105,95c-20,62 -45,95 -100,105z"/>
+    <path android:fillColor="#251333" android:pathData="M1340,420c-35,-150 35,-270 175,-300c120,-25 240,55 255,180c-35,-70 -90,-110 -155,-120c-100,-15 -170,55 -195,150c-20,75 -45,110 -80,130z"/>
+    <path android:fillColor="#251333" android:pathData="M1350,390c-70,170 -35,360 30,500c-110,-85 -160,-235 -125,-380c20,-80 55,-145 95,-190z"/>
+    <path android:fillColor="#251333" android:pathData="M1510,270c120,10 210,95 225,220c18,145 -35,285 -120,390c40,-140 40,-260 -5,-360c-45,-100 -90,-165 -100,-250z"/>
+    <path android:fillColor="#251333" android:pathData="M1390,390c-35,115 -5,210 45,300c-95,-45 -145,-150 -120,-255c15,-55 40,-95 75,-125z"/>
+    <path android:fillColor="#251333" android:pathData="M1460,300c-40,95 -45,180 -10,250c-75,-50 -100,-150 -55,-235c20,-35 40,-55 65,-70z"/>
+    <path android:fillColor="#A85F91" android:pathData="M1330,570c-50,160 -10,330 60,510c-115,-115 -160,-280 -115,-430c15,-45 30,-70 55,-80z"/>
+    <path android:fillColor="#A85F91" android:pathData="M1585,520c95,125 100,300 30,465c120,-125 150,-315 75,-455c-25,-45 -60,-80 -105,-100z"/>
+    <path android:fillColor="#D7A4C7" android:pathData="M1380,445c20,10 45,12 62,2c-12,30 -40,40 -62,20z"/>
+    <path android:fillColor="#5A315E" android:pathData="M1390,455c16,-8 35,-8 48,0c-12,10 -32,14 -48,0z"/>
+    <path android:fillColor="#2A1839" android:pathData="M1408,458c6,-4 12,-3 16,1c-5,8 -12,8 -16,-1z"/>
+    <path android:fillColor="#C77CA8" android:pathData="M1365,490c18,12 38,12 52,0c-15,27 -38,28 -52,0z"/>
+    <!-- kimono collar and sleeves -->
+    <path android:fillColor="#6E3C88" android:pathData="M1265,750c-80,30 -145,105 -195,220l-70,110h290l115,-260z"/>
+    <path android:fillColor="#8D559B" android:pathData="M1660,720c110,45 180,145 225,360h-300l-80,-250z"/>
+    <path android:fillColor="#C98DBD" android:pathData="M1450,660l115,0 90,420h-320z"/>
+    <path android:fillColor="#F0C4E2" android:pathData="M1455,660l90,0 35,420h-180z"/>
+    <path android:fillColor="#4B285F" android:pathData="M1370,670l90,25 70,385h-95z"/>
+    <path android:fillColor="#DCA6D1" android:pathData="M1275,840c90,45 170,70 250,75l-45,85c-100,-5 -185,-40 -265,-90z"/>
+    <!-- subtle hair strands -->
+    <path android:fillColor="#B47AAE" android:pathData="M1365,310c-35,150 -20,300 35,435c-90,-105 -105,-285 -35,-435z"/>
+    <path android:fillColor="#B47AAE" android:pathData="M1530,285c75,150 90,300 35,455c95,-125 95,-330 -35,-455z"/>
+    <!-- drifting petals -->
+    <path android:fillColor="#F6B9DF" android:pathData="M800,220c35,-25 70,10 42,42c-25,28 -65,5 -42,-42z"/>
+    <path android:fillColor="#E99ACD" android:pathData="M1080,360c30,-20 60,8 36,35c-22,24 -56,4 -36,-35z"/>
+    <path android:fillColor="#FFD7EE" android:pathData="M1190,160c25,-18 48,7 29,29c-18,20 -45,4 -29,-29z"/>
+    <path android:fillColor="#F6B9DF" android:pathData="M960,560c25,-18 48,7 29,29c-18,20 -45,4 -29,-29z"/>
+</vector>
