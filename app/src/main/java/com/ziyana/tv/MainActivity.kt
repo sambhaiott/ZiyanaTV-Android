@@ -38,6 +38,10 @@ class MainActivity : Activity() {
     private var appFilter = "All"
     private var searchQuery = ""
     private var pendingVoiceQuery = ""
+    // PackageManager queries are relatively expensive on low-memory TV hardware.
+    // Keep one activity-scoped snapshot and refresh it when returning from other apps.
+    private var cachedLaunchableApps: List<android.content.pm.ResolveInfo>? = null
+    private var hasResumedOnce = false
     private val voiceRequestCode = 41
     private val prefs by lazy { getSharedPreferences("ziyana_launcher", MODE_PRIVATE) }
     private fun pinned() = prefs.getStringSet("pinned_apps", emptySet())?.toMutableSet() ?: mutableSetOf()
@@ -818,6 +822,9 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        // The first Home render already queried the packages during onCreate.
+        // On later resumes, refresh once so installs/uninstalls are reflected.
+        if (hasResumedOnce) cachedLaunchableApps = null else hasResumedOnce = true
         if (::content.isInitialized) when (selected) {
             "Home" -> showHome()
             "Apps", "Entertainment", "Tools" -> showAppsPage()
@@ -829,8 +836,9 @@ class MainActivity : Activity() {
 
     @Suppress("DEPRECATION")
     private fun getApps(): List<android.content.pm.ResolveInfo> {
-        // Query both Android TV and standard Android launchable activities.
-        // QUERY_ALL_PACKAGES prevents Android 11+ package visibility hiding apps.
+        cachedLaunchableApps?.let { return it }
+        // Query both Android TV and standard Android launchable activities only once
+        // per foreground session; this avoids repeated PackageManager work on 2 GB TVs.
         val leanback = packageManager.queryIntentActivities(
             Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER), 0)
         val standard = packageManager.queryIntentActivities(
@@ -840,7 +848,7 @@ class MainActivity : Activity() {
             .distinctBy { it.activityInfo.packageName }
         return combined.sortedBy {
             it.loadLabel(packageManager).toString().trim().lowercase(Locale.getDefault())
-        }
+        }.also { cachedLaunchableApps = it }
     }
 
     private fun startResolvedApp(pkg: String, resolved: Intent) {
@@ -919,8 +927,9 @@ class MainActivity : Activity() {
         content.addView(results, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(14) })
         fun render(query: String) {
             results.removeAllViews()
-            val found = sortedApps().filter { it.loadLabel(packageManager).toString().contains(query.trim(), true) }
-            results.addView(label(if (query.isBlank()) "${sortedApps().size} visible apps" else "${found.size} results", 12f, muted))
+            val visibleApps = sortedApps()
+            val found = visibleApps.filter { it.loadLabel(packageManager).toString().contains(query.trim(), true) }
+            results.addView(label(if (query.isBlank()) "${visibleApps.size} visible apps" else "${found.size} results", 12f, muted))
             if (found.isEmpty()) results.addView(label("No matching app found.", 14f, muted).apply { setPadding(0, dp(18), 0, 0) })
             else found.take(30).forEach { info ->
                 val line = LinearLayout(this).apply {
@@ -1020,7 +1029,17 @@ class MainActivity : Activity() {
             "Date and time" to { openSystemPanel(android.provider.Settings.ACTION_DATE_SETTINGS) },
             "Accessibility" to { openSystemPanel(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS) },
             "Manage hidden apps" to { manageHiddenApps() },
-            "Refresh installed apps" to { when (selected) { "Home" -> showHome(); "Apps", "Entertainment", "Tools" -> showAppsPage(); "Favorites" -> showFavoritesPage(); "Search" -> showSearch(); else -> showSettings() }; toast("App list refreshed") },
+            "Refresh installed apps" to {
+                cachedLaunchableApps = null
+                when (selected) {
+                    "Home" -> showHome()
+                    "Apps", "Entertainment", "Tools" -> showAppsPage()
+                    "Favorites" -> showFavoritesPage()
+                    "Search" -> showSearch()
+                    else -> showSettings()
+                }
+                toast("App list refreshed")
+            },
             "Choose Home launcher" to { toast("Press the TV remote Home button and select Ziyana TV if your TV offers the choice.") },
             "About Ziyana TV" to {
                 val version = try {
