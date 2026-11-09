@@ -934,7 +934,7 @@ class MainActivity : Activity() {
                     packageManager.getPackageInfo(packageName, 0).versionName ?: "Unknown"
                 } catch (_: Exception) { "Unknown" }
                 AlertDialog.Builder(this).setTitle("Ziyana TV")
-                    .setMessage("Premium Android TV launcher\\nVersion $version")
+                    .setMessage("Premium Android TV launcher\nVersion $version")
                     .setPositiveButton("OK", null).show()
             }
         )
