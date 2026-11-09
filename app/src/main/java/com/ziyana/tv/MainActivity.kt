@@ -168,6 +168,36 @@ class MainActivity : Activity() {
         showHome()
         nav.getChildAt(1)?.requestFocus()
         handler.post(clockTick)
+        } catch (error: Exception) {
+            handler.removeCallbacks(clockTick)
+            val detail = "${error.javaClass.simpleName}: ${error.message ?: "No details"}"
+            val fallback = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER
+                setPadding(dp(36), dp(24), dp(36), dp(24))
+                setBackgroundColor(0xFF111318.toInt())
+                addView(TextView(this@MainActivity).apply {
+                    text = "ZIYANA TV COULD NOT START"
+                    textSize = 22f
+                    setTextColor(0xFFE8D5AF.toInt())
+                    gravity = Gravity.CENTER
+                })
+                addView(TextView(this@MainActivity).apply {
+                    text = detail
+                    textSize = 14f
+                    setTextColor(Color.WHITE)
+                    gravity = Gravity.CENTER
+                    setPadding(0, dp(18), 0, dp(18))
+                })
+                addView(TextView(this@MainActivity).apply {
+                    text = "Please take a photo of this error and send it for troubleshooting."
+                    textSize = 12f
+                    setTextColor(0xFFC5C2C9.toInt())
+                    gravity = Gravity.CENTER
+                })
+            }
+            setContentView(fallback)
+        }
     }
 
     override fun onDestroy() {
