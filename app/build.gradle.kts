@@ -15,19 +15,6 @@ android {
         versionName = "1.0"
     }
 
-    flavorDimensions += "device"
-    productFlavors {
-        create("tv") {
-            dimension = "device"
-            applicationId = "com.ziyana.tv"
-            versionNameSuffix = "-tv"
-        }
-        create("mobile") {
-            dimension = "device"
-            applicationId = "com.ziyana.mobile"
-            versionNameSuffix = "-mobile"
-        }
-    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
