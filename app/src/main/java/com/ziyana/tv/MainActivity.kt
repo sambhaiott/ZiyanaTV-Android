@@ -233,27 +233,37 @@ class MainActivity : Activity() {
         nav.addView(brand)
 
         val items = listOf(
-            "⌂" to "Home", "⌕" to "Search", "▦" to "Apps", "♡" to "Favorites",
-            "▷" to "Entertainment", "◈" to "Tools", "⚙" to "Settings"
+            R.drawable.ic_home to "Home", R.drawable.ic_search to "Search",
+            R.drawable.ic_apps to "Apps", R.drawable.ic_favorite to "Favorites",
+            R.drawable.ic_play to "Entertainment", R.drawable.ic_tools to "Tools",
+            R.drawable.ic_settings to "Settings"
         )
-        items.forEach { (symbol, name) ->
-            val item = TextView(this).apply {
-                text = "$symbol    $name"
-                textSize = 14f
-                setTextColor(Color.WHITE)
+        items.forEach { (iconRes, name) ->
+            val item = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(dp(13), 0, dp(5), 0)
                 isFocusable = true
                 isClickable = true
                 background = glossySurface(if (selected == name) 0xFF65543A.toInt() else 0x66413A30,
                     0xFF171513.toInt(), 17, if (selected == name) 0xFFE8D5AF.toInt() else 0x667D6749)
+                val icon = ImageView(this@MainActivity).apply {
+                    setImageResource(iconRes)
+                    setColorFilter(if (selected == name) 0xFFE8D5AF.toInt() else 0xFFE2D8C8.toInt())
+                    scaleType = ImageView.ScaleType.FIT_CENTER
+                }
+                addView(icon, LinearLayout.LayoutParams(dp(21), dp(21)).apply { marginEnd = dp(13) })
+                addView(label(name, 13f, Color.WHITE, selected == name), LinearLayout.LayoutParams(0, -1, 1f))
                 setOnClickListener { navigate(name) }
                 setOnFocusChangeListener { v, hasFocus ->
-                    v.background = glossySurface(if (hasFocus || selected == name) 0xFF705B3B.toInt() else 0x66413A30,
+                    val active = hasFocus || selected == name
+                    v.background = glossySurface(if (active) 0xFF705B3B.toInt() else 0x66413A30,
                         0xFF171513.toInt(), 17,
-                        if (hasFocus || selected == name) 0xFFE8D5AF.toInt() else 0x667D6749)
-                    v.animate().scaleX(if (hasFocus) 1.03f else 1f)
-                        .scaleY(if (hasFocus) 1.03f else 1f)
+                        if (active) 0xFFE8D5AF.toInt() else 0x667D6749)
+                    icon.setColorFilter(if (active) 0xFFFFE8BC.toInt() else 0xFFE2D8C8.toInt())
+                    v.animate().cancel()
+                    v.animate().scaleX(if (hasFocus) 1.025f else 1f)
+                        .scaleY(if (hasFocus) 1.025f else 1f)
                         .setDuration(225)
                         .setInterpolator(android.view.animation.DecelerateInterpolator(1.35f)).start()
                 }
