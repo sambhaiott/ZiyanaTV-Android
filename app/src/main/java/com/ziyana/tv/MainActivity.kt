@@ -209,12 +209,12 @@ class MainActivity : Activity() {
             )
             v.animate().cancel()
             v.animate()
-                .scaleX(if (hasFocus) 1.055f else 1f)
-                .scaleY(if (hasFocus) 1.055f else 1f)
+                .scaleX(if (hasFocus) 1.045f else 1f)
+                .scaleY(if (hasFocus) 1.045f else 1f)
                 .alpha(if (hasFocus) 1f else 0.97f)
                 .translationZ(if (hasFocus) dp(10).toFloat() else 0f)
-                .setDuration(215)
-                .setInterpolator(android.view.animation.DecelerateInterpolator())
+                .setDuration(235)
+                .setInterpolator(android.view.animation.DecelerateInterpolator(1.35f))
                 .start()
             v.elevation = if (hasFocus) dp(10).toFloat() else 0f
         }
@@ -252,10 +252,10 @@ class MainActivity : Activity() {
                     v.background = glossySurface(if (hasFocus || selected == name) 0xFF705B3B.toInt() else 0x66413A30,
                         0xFF171513.toInt(), 17,
                         if (hasFocus || selected == name) 0xFFE8D5AF.toInt() else 0x667D6749)
-                    v.animate().scaleX(if (hasFocus) 1.035f else 1f)
-                        .scaleY(if (hasFocus) 1.035f else 1f)
-                        .setDuration(205)
-                        .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
+                    v.animate().scaleX(if (hasFocus) 1.03f else 1f)
+                        .scaleY(if (hasFocus) 1.03f else 1f)
+                        .setDuration(225)
+                        .setInterpolator(android.view.animation.DecelerateInterpolator(1.35f)).start()
                 }
             }
             val lp = LinearLayout.LayoutParams(-1, dp(47))
@@ -278,9 +278,9 @@ class MainActivity : Activity() {
             "Search" -> showSearch()
         }
         content.alpha = 0f
-        content.translationY = dp(9).toFloat()
+        content.translationY = dp(6).toFloat()
         content.animate().alpha(1f).translationY(0f)
-            .setDuration(245).setInterpolator(android.view.animation.DecelerateInterpolator()).start()
+            .setDuration(280).setInterpolator(android.view.animation.DecelerateInterpolator(1.35f)).start()
     }
 
     private fun heading(title: String, subtitle: String? = null) {
