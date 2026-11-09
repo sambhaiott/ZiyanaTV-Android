@@ -43,6 +43,13 @@ class MainActivity : Activity() {
     private fun pinned() = prefs.getStringSet("pinned_apps", emptySet())?.toMutableSet() ?: mutableSetOf()
     private fun favorites() = prefs.getStringSet("favorite_apps", emptySet())?.toMutableSet() ?: mutableSetOf()
     private fun hiddenApps() = prefs.getStringSet("hidden_apps", emptySet())?.toMutableSet() ?: mutableSetOf()
+    private fun recentPackages(): List<String> =
+        prefs.getString("recent_apps", "").orEmpty().split("|").filter { it.isNotBlank() }
+
+    private fun rememberLaunch(pkg: String) {
+        val updated = (listOf(pkg) + recentPackages().filterNot { it == pkg }).take(20)
+        prefs.edit().putString("recent_apps", updated.joinToString("|")).apply()
+    }
     private fun toggleHidden(pkg: String) {
         val items = hiddenApps()
         val hidden = if (items.contains(pkg)) { items.remove(pkg); false } else { items.add(pkg); true }
@@ -733,10 +740,15 @@ class MainActivity : Activity() {
     private fun sortedApps(): List<android.content.pm.ResolveInfo> {
         val pins = pinned()
         val hidden = hiddenApps()
+        val recentOrder = recentPackages().withIndex().associate { it.value to it.index }
         return getApps().filter { it.activityInfo.packageName !in hidden }
             .sortedWith(compareByDescending<android.content.pm.ResolveInfo> {
                 it.activityInfo.packageName in pins
-            }.thenBy { it.loadLabel(packageManager).toString().trim().lowercase(Locale.getDefault()) })
+            }.thenBy {
+                recentOrder[it.activityInfo.packageName] ?: Int.MAX_VALUE
+            }.thenBy {
+                it.loadLabel(packageManager).toString().trim().lowercase(Locale.getDefault())
+            })
     }
 
     private fun matchesFilter(info: android.content.pm.ResolveInfo, filter: String): Boolean {
@@ -807,6 +819,7 @@ class MainActivity : Activity() {
                 ?: packageManager.getLaunchIntentForPackage(pkg)
                 ?: Intent(Intent.ACTION_MAIN).setClassName(pkg, info.activityInfo.name)
             startActivity(launch)
+            rememberLaunch(pkg)
         } catch (_: Exception) { toast("Could not open app") }
     }
 
@@ -814,7 +827,10 @@ class MainActivity : Activity() {
         try {
             val intent = packageManager.getLeanbackLaunchIntentForPackage(pkg)
                 ?: packageManager.getLaunchIntentForPackage(pkg)
-            if (intent != null) startActivity(intent) else toast("App is not installed")
+            if (intent != null) {
+                startActivity(intent)
+                rememberLaunch(pkg)
+            } else toast("App is not installed")
         } catch (_: Exception) { toast("Could not open app") }
     }
 
