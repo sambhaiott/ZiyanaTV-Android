@@ -1,4 +1,4 @@
-name: Build Ziyana TV and Mobile APKs
+name: Build Ziyana TV APK
 
 on:
   workflow_dispatch:
@@ -20,17 +20,11 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
-      - name: Build TV and Mobile APKs
-        run: gradle --no-daemon assembleTvDebug assembleMobileDebug
+      - name: Build TV APK
+        run: gradle --no-daemon assembleDebug
       - name: Upload TV APK
         uses: actions/upload-artifact@v4
         with:
           name: Ziyana-TV-APK
-          path: app/build/outputs/apk/tv/debug/app-tv-debug.apk
-          if-no-files-found: error
-      - name: Upload Mobile APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: Ziyana-Mobile-APK
-          path: app/build/outputs/apk/mobile/debug/app-mobile-debug.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
