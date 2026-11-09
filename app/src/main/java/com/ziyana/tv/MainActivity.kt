@@ -542,16 +542,26 @@ class MainActivity : Activity() {
             setOnClickListener { launchActivity(info) }
             setOnLongClickListener { showAppOptions(info); true }
         }
-        val iconFrame = FrameLayout(this)
+        val iconFrame = FrameLayout(this).apply {
+            background = glossySurface(0xFF4A463E.toInt(), 0xFF242321.toInt(), 15, 0x887D7564.toInt())
+            elevation = dp(2).toFloat()
+        }
         iconFrame.addView(ImageView(this).apply {
             setImageDrawable(info.loadIcon(packageManager))
             scaleType = ImageView.ScaleType.FIT_CENTER
-        }, FrameLayout.LayoutParams(dp(47), dp(47), Gravity.CENTER))
+            contentDescription = info.loadLabel(packageManager).toString()
+        }, FrameLayout.LayoutParams(dp(39), dp(39), Gravity.CENTER))
         if (info.activityInfo.packageName in favorites()) {
-            iconFrame.addView(label("★", 14f, 0xFFFFD36D.toInt(), true),
-                FrameLayout.LayoutParams(dp(22), dp(22), Gravity.END or Gravity.TOP))
+            val star = TextView(this).apply {
+                text = "★"
+                textSize = 11f
+                gravity = Gravity.CENTER
+                setTextColor(0xFFFFD36D.toInt())
+                background = glossySurface(0xFF514633.toInt(), 0xFF252019.toInt(), 9, 0xAAE8D5AF.toInt())
+            }
+            iconFrame.addView(star, FrameLayout.LayoutParams(dp(21), dp(21), Gravity.END or Gravity.TOP))
         }
-        card.addView(iconFrame, LinearLayout.LayoutParams(dp(54), dp(52)))
+        card.addView(iconFrame, LinearLayout.LayoutParams(dp(56), dp(56)))
         card.addView(label(info.loadLabel(packageManager).toString(), 11f, Color.WHITE, true).apply {
             gravity = Gravity.CENTER
             maxLines = 1
@@ -626,7 +636,7 @@ class MainActivity : Activity() {
     private fun addFeatureTiles(names: List<String>) {
         val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val colors = intArrayOf(0xFF514633.toInt(), 0xFF38332B.toInt(), 0xFF34302B.toInt(), 0xFF40382E.toInt())
-        val symbols = listOf("✿", "▣", "▶", "♡")
+        val iconResources = listOf(R.drawable.ic_favorite, R.drawable.ic_play, R.drawable.ic_tools, R.drawable.ic_settings)
         names.forEachIndexed { i, name ->
             val tile = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
@@ -636,7 +646,15 @@ class MainActivity : Activity() {
                 isFocusable = true
                 isClickable = true
                 focusStyle(this, 17, colors[i], 0xFF806747.toInt())
-                addView(label(symbols[i], 22f, 0xFFE9D6B4.toInt(), true))
+                val iconPlate = FrameLayout(this@MainActivity).apply {
+                    background = glossySurface(0xFF4B4438.toInt(), 0xFF25221D.toInt(), 12, 0x887D7564.toInt())
+                }
+                iconPlate.addView(ImageView(this@MainActivity).apply {
+                    setImageResource(iconResources[i])
+                    setColorFilter(0xFFFFE8BC.toInt())
+                    scaleType = ImageView.ScaleType.FIT_CENTER
+                }, FrameLayout.LayoutParams(dp(22), dp(22), Gravity.CENTER))
+                addView(iconPlate, LinearLayout.LayoutParams(dp(36), dp(36)).apply { bottomMargin = dp(5) })
                 addView(label(name, 13f, Color.WHITE, true))
                 setOnClickListener {
                     when (name) {
@@ -648,7 +666,7 @@ class MainActivity : Activity() {
                     }
                 }
             }
-            val lp = LinearLayout.LayoutParams(0, dp(83), 1f)
+            val lp = LinearLayout.LayoutParams(0, dp(91), 1f)
             lp.marginEnd = dp(10)
             row.addView(tile, lp)
         }
