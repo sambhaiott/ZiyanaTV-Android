@@ -11,20 +11,50 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+
+      - name: Restore stable debug signing key
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/ziyana-debug.keystore
+          key: ziyana-tv-debug-signing-v1
+
+      - name: Create debug signing key on first build
+        shell: bash
+        run: |
+          if [ ! -f "${RUNNER_TEMP}/ziyana-debug.keystore" ]; then
+            keytool -genkeypair -v \
+              -keystore "${RUNNER_TEMP}/ziyana-debug.keystore" \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
+
       - name: Build TV APK
-        run: gradle --no-daemon assembleDebug
+        run: gradle --no-daemon clean assembleDebug
+
+      - name: Verify APK output
+        shell: bash
+        run: |
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          file app/build/outputs/apk/debug/app-debug.apk
+          sha256sum app/build/outputs/apk/debug/app-debug.apk
+
       - name: Upload TV APK
         uses: actions/upload-artifact@v4
         with:
-          name: Ziyana-TV-APK
+          name: Ziyana-TV-APK-v1.3
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
