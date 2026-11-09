@@ -11,10 +11,24 @@ android {
         applicationId = "com.ziyana.tv"
         minSdk = 23
         targetSdk = 28
-        versionCode = 3
-        versionName = "1.2"
+        versionCode = 4
+        versionName = "1.3"
     }
 
+    signingConfigs {
+        create("stableDebug") {
+            storeFile = file(System.getenv("RUNNER_TEMP") + "/ziyana-debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
+    buildTypes {
+        getByName("debug") {
+            signingConfig = signingConfigs.getByName("stableDebug")
+        }
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
