@@ -929,7 +929,14 @@ class MainActivity : Activity() {
             "Manage hidden apps" to { manageHiddenApps() },
             "Refresh installed apps" to { when (selected) { "Home" -> showHome(); "Apps", "Entertainment", "Tools" -> showAppsPage(); "Favorites" -> showFavoritesPage(); "Search" -> showSearch(); else -> showSettings() }; toast("App list refreshed") },
             "Choose Home launcher" to { toast("Press the TV remote Home button and select Ziyana TV if your TV offers the choice.") },
-            "About Ziyana TV" to { AlertDialog.Builder(this).setTitle("Ziyana TV").setMessage("Premium Android TV launcher\\nVersion 1.2").setPositiveButton("OK", null).show() }
+            "About Ziyana TV" to {
+                val version = try {
+                    packageManager.getPackageInfo(packageName, 0).versionName ?: "Unknown"
+                } catch (_: Exception) { "Unknown" }
+                AlertDialog.Builder(this).setTitle("Ziyana TV")
+                    .setMessage("Premium Android TV launcher\\nVersion $version")
+                    .setPositiveButton("OK", null).show()
+            }
         )
         options.forEach { (title, action) ->
             content.addView(actionButton(title, false, action), LinearLayout.LayoutParams(dp(310), dp(48)).apply { topMargin = dp(12) })
