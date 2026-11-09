@@ -24,6 +24,7 @@ class MobileActivity : Activity() {
     private val champagne = 0xFFE6D1A9.toInt()
     private val muted = 0xFFBEB7AD.toInt()
     private lateinit var page: LinearLayout
+    private lateinit var bottomNav: LinearLayout
     private var selected = "Home"
     private var query = ""
     private val prefs by lazy { getSharedPreferences("ziyana_mobile_prefs", MODE_PRIVATE) }
@@ -57,7 +58,8 @@ class MobileActivity : Activity() {
         }
         scroll.addView(page)
         shell.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
-        shell.addView(bottomNavigation(), LinearLayout.LayoutParams(-1, dp(66)))
+        bottomNav = bottomNavigation()
+        shell.addView(bottomNav, LinearLayout.LayoutParams(-1, dp(66)))
         root.addView(shell)
         setContentView(root)
         render()
@@ -90,9 +92,23 @@ class MobileActivity : Activity() {
                 isFocusable = true
                 addView(text(symbol, 21f, if (selected == name) champagne else muted, true).apply { gravity = Gravity.CENTER })
                 addView(text(name, 10f, if (selected == name) Color.WHITE else muted).apply { gravity = Gravity.CENTER })
-                setOnClickListener { selected = name; render() }
+                setOnClickListener {
+                    selected = name
+                    updateBottomNavigation()
+                    render()
+                }
             }
             addView(item, LinearLayout.LayoutParams(0, -1, 1f))
+        }
+    }
+
+    private fun updateBottomNavigation() {
+        if (!::bottomNav.isInitialized) return
+        val items = listOf("Home", "Apps", "Favorites", "Settings")
+        items.forEachIndexed { index, name ->
+            val item = bottomNav.getChildAt(index) as? LinearLayout ?: return@forEachIndexed
+            (item.getChildAt(0) as? TextView)?.setTextColor(if (selected == name) champagne else muted)
+            (item.getChildAt(1) as? TextView)?.setTextColor(if (selected == name) Color.WHITE else muted)
         }
     }
 
