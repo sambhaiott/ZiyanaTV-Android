@@ -812,26 +812,44 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun startResolvedApp(pkg: String, resolved: Intent) {
+        // Launch from the exact activity returned by PackageManager first. Some
+        // Android TV apps expose a Leanback activity but no standard launch intent.
+        resolved.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+        startActivity(resolved)
+        rememberLaunch(pkg)
+    }
+
     private fun launchActivity(info: android.content.pm.ResolveInfo) {
-        try {
-            val pkg = info.activityInfo.packageName
-            val launch = packageManager.getLeanbackLaunchIntentForPackage(pkg)
-                ?: packageManager.getLaunchIntentForPackage(pkg)
-                ?: Intent(Intent.ACTION_MAIN).setClassName(pkg, info.activityInfo.name)
-            startActivity(launch)
-            rememberLaunch(pkg)
-        } catch (_: Exception) { toast("Could not open app") }
+        val pkg = info.activityInfo.packageName
+        val attempts = listOfNotNull(
+            Intent(Intent.ACTION_MAIN).setClassName(pkg, info.activityInfo.name),
+            packageManager.getLeanbackLaunchIntentForPackage(pkg),
+            packageManager.getLaunchIntentForPackage(pkg)
+        )
+        for (intent in attempts) {
+            try {
+                startResolvedApp(pkg, intent)
+                return
+            } catch (_: Exception) {
+                // Try the next valid launcher entry for this installed package.
+            }
+        }
+        toast("Could not open app. Check whether it is enabled.")
     }
 
     private fun launchPackage(pkg: String) {
-        try {
-            val intent = packageManager.getLeanbackLaunchIntentForPackage(pkg)
-                ?: packageManager.getLaunchIntentForPackage(pkg)
-            if (intent != null) {
-                startActivity(intent)
-                rememberLaunch(pkg)
-            } else toast("App is not installed")
-        } catch (_: Exception) { toast("Could not open app") }
+        val intent = packageManager.getLeanbackLaunchIntentForPackage(pkg)
+            ?: packageManager.getLaunchIntentForPackage(pkg)
+        if (intent != null) {
+            try {
+                startResolvedApp(pkg, intent)
+            } catch (_: Exception) {
+                toast("Could not open app")
+            }
+        } else {
+            toast("App is not installed or has no launcher activity")
+        }
     }
 
     private fun launchFirstMatching(words: List<String>) {
