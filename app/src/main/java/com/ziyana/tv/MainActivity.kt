@@ -947,7 +947,9 @@ class MainActivity : Activity() {
                 results.addView(line, LinearLayout.LayoutParams(-1, dp(56)).apply { topMargin = dp(7) })
             }
         }
-        render("")
+        // Render the prefilled voice-search query too; the TextWatcher is attached
+        // after setText(), so an empty initial render would otherwise ignore speech.
+        render(searchQuery)
         input.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
