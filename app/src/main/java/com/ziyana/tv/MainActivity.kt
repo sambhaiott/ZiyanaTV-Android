@@ -280,6 +280,7 @@ class MainActivity : Activity() {
             R.drawable.ic_play to "Entertainment", R.drawable.ic_tools to "Tools",
             R.drawable.ic_settings to "Settings"
         )
+        var selectedNavItem: View? = null
         items.forEach { (iconRes, name) ->
             val item = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
@@ -310,10 +311,14 @@ class MainActivity : Activity() {
                         .setInterpolator(android.view.animation.DecelerateInterpolator(1.35f)).start()
                 }
             }
+            if (name == selected) selectedNavItem = item
             val lp = LinearLayout.LayoutParams(-1, dp(47))
             lp.bottomMargin = dp(5)
             nav.addView(item, lp)
         }
+        // Replacing the nav views clears the old focus target. Restore focus to
+        // the active destination so the TV remote never lands on an invisible view.
+        selectedNavItem?.requestFocus()
         nav.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
     }
 
