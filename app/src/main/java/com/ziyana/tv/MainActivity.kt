@@ -54,16 +54,23 @@ class MainActivity : Activity() {
         val updated = (listOf(pkg) + recentPackages().filterNot { it == pkg }).take(20)
         prefs.edit().putString("recent_apps", updated.joinToString("|")).apply()
     }
+    private fun refreshSelectedPage() {
+        if (!::content.isInitialized) return
+        when (selected) {
+            "Home" -> showHome()
+            "Apps", "Entertainment", "Tools" -> showAppsPage()
+            "Favorites" -> showFavoritesPage()
+            "Search" -> showSearch()
+            "Settings" -> showSettings()
+        }
+    }
+
     private fun toggleHidden(pkg: String) {
         val items = hiddenApps()
         val hidden = if (items.contains(pkg)) { items.remove(pkg); false } else { items.add(pkg); true }
         prefs.edit().putStringSet("hidden_apps", items).apply()
         toast(if (hidden) "App hidden from launcher" else "App is visible again")
-        when (selected) {
-            "Home" -> showHome()
-            "Favorites" -> showFavoritesPage()
-            "Apps", "Entertainment", "Tools" -> showAppsPage()
-        }
+        refreshSelectedPage()
     }
     private fun manageHiddenApps() {
         val apps = getApps().sortedBy { it.loadLabel(packageManager).toString().lowercase(Locale.getDefault()) }
@@ -80,11 +87,9 @@ class MainActivity : Activity() {
                 prefs.edit().putStringSet("hidden_apps", current).apply()
             }
             .setPositiveButton("Done") { _, _ ->
-                when (selected) {
-                    "Home" -> showHome()
-                    "Favorites" -> showFavoritesPage()
-                    else -> showAppsPage()
-                }
+                // Return to the page that opened this dialog instead of forcing
+                // Settings/Search users into the Applications screen.
+                refreshSelectedPage()
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -94,19 +99,14 @@ class MainActivity : Activity() {
         val added = if (items.contains(pkg)) { items.remove(pkg); false } else { items.add(pkg); true }
         prefs.edit().putStringSet("favorite_apps", items).apply()
         toast(if (added) "Added to Favorites" else "Removed from Favorites")
-        if (selected == "Favorites") showFavoritesPage()
-        else if (selected == "Apps" || selected == "Home" || selected == "Entertainment" || selected == "Tools") {
-            if (selected == "Home") showHome() else showAppsPage()
-        }
+        refreshSelectedPage()
     }
     private fun togglePinned(pkg: String) {
         val items = pinned()
         val added = if (items.contains(pkg)) { items.remove(pkg); false } else { items.add(pkg); true }
         prefs.edit().putStringSet("pinned_apps", items).apply()
         toast(if (added) "App pinned" else "App unpinned")
-        if (selected == "Apps" || selected == "Home" || selected == "Entertainment" || selected == "Tools") {
-            if (selected == "Home") showHome() else showAppsPage()
-        }
+        refreshSelectedPage()
     }
     private val handler = Handler(Looper.getMainLooper())
     private val clockTick = object : Runnable {
@@ -830,13 +830,7 @@ class MainActivity : Activity() {
         // The first Home render already queried the packages during onCreate.
         // On later resumes, refresh once so installs/uninstalls are reflected.
         if (hasResumedOnce) cachedLaunchableApps = null else hasResumedOnce = true
-        if (::content.isInitialized) when (selected) {
-            "Home" -> showHome()
-            "Apps", "Entertainment", "Tools" -> showAppsPage()
-            "Favorites" -> showFavoritesPage()
-            "Search" -> showSearch()
-            "Settings" -> showSettings()
-        }
+        refreshSelectedPage()
     }
 
     @Suppress("DEPRECATION")
