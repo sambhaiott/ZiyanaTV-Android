@@ -75,18 +75,18 @@ class MainActivity : Activity() {
     private fun manageHiddenApps() {
         val apps = getApps().sortedBy { it.loadLabel(packageManager).toString().lowercase(Locale.getDefault()) }
         if (apps.isEmpty()) { toast("No installed apps found"); return }
-        val hidden = hiddenApps()
+        // Stage checkbox changes locally so Cancel or Back leaves the saved list untouched.
+        val pendingHidden = hiddenApps()
         val names = apps.map { it.loadLabel(packageManager).toString() }.toTypedArray()
-        val checked = apps.map { it.activityInfo.packageName in hidden }.toBooleanArray()
+        val checked = apps.map { it.activityInfo.packageName in pendingHidden }.toBooleanArray()
         AlertDialog.Builder(this)
             .setTitle("Hidden apps")
             .setMultiChoiceItems(names, checked) { _, which, isChecked ->
                 val pkg = apps[which].activityInfo.packageName
-                val current = hiddenApps()
-                if (isChecked) current.add(pkg) else current.remove(pkg)
-                prefs.edit().putStringSet("hidden_apps", current).apply()
+                if (isChecked) pendingHidden.add(pkg) else pendingHidden.remove(pkg)
             }
             .setPositiveButton("Done") { _, _ ->
+                prefs.edit().putStringSet("hidden_apps", pendingHidden.toSet()).apply()
                 // Return to the page that opened this dialog instead of forcing
                 // Settings/Search users into the Applications screen.
                 refreshSelectedPage()
