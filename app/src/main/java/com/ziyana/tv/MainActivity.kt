@@ -120,6 +120,15 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Android may recreate this Activity after reclaiming memory on a 2 GB TV.
+        // Restore the user's current destination and search/filter state.
+        selected = savedInstanceState?.getString("selected_page")
+            ?.takeIf { it in listOf("Home", "Search", "Apps", "Favorites", "Entertainment", "Tools", "Settings") }
+            ?: "Home"
+        appFilter = savedInstanceState?.getString("app_filter")
+            ?.takeIf { it in listOf("All", "Entertainment", "Tools", "System") }
+            ?: "All"
+        searchQuery = savedInstanceState?.getString("search_query").orEmpty()
         try {
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN or
             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
@@ -170,8 +179,7 @@ class MainActivity : Activity() {
         setContentView(root)
 
         buildNav()
-        showHome()
-        nav.getChildAt(1)?.requestFocus()
+        refreshSelectedPage()
         handler.post(clockTick)
         } catch (error: Exception) {
             handler.removeCallbacks(clockTick)
@@ -203,6 +211,13 @@ class MainActivity : Activity() {
             }
             setContentView(fallback)
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("selected_page", selected)
+        outState.putString("app_filter", appFilter)
+        outState.putString("search_query", searchQuery)
+        super.onSaveInstanceState(outState)
     }
 
     override fun onDestroy() {
