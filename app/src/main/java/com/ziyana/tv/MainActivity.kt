@@ -842,10 +842,15 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        // The first Home render already queried the packages during onCreate.
-        // On later resumes, refresh once so installs/uninstalls are reflected.
-        if (hasResumedOnce) cachedLaunchableApps = null else hasResumedOnce = true
-        refreshSelectedPage()
+        // onCreate already built the initial screen inside its startup error guard.
+        // Skip a second full view-tree rebuild on cold start; refresh only when
+        // returning from another app so newly installed/uninstalled apps appear.
+        if (hasResumedOnce) {
+            cachedLaunchableApps = null
+            refreshSelectedPage()
+        } else {
+            hasResumedOnce = true
+        }
     }
 
     @Suppress("DEPRECATION")
