@@ -33,7 +33,9 @@ class MainActivity : Activity() {
     private val muted = 0xFFC5C2C9.toInt()
     private lateinit var content: LinearLayout
     private lateinit var nav: LinearLayout
+    private lateinit var pageScroll: ScrollView
     private lateinit var clock: TextView
+    private var restoredScrollY = 0
     private var selected = "Home"
     private var appFilter = "All"
     private var searchQuery = ""
@@ -54,14 +56,21 @@ class MainActivity : Activity() {
         val updated = (listOf(pkg) + recentPackages().filterNot { it == pkg }).take(20)
         prefs.edit().putString("recent_apps", updated.joinToString("|")).apply()
     }
-    private fun refreshSelectedPage() {
+    private fun refreshSelectedPage(preserveScroll: Boolean = true) {
         if (!::content.isInitialized) return
+        val previousScrollY = if (preserveScroll && ::pageScroll.isInitialized) pageScroll.scrollY else 0
         when (selected) {
             "Home" -> showHome()
             "Apps", "Entertainment", "Tools" -> showAppsPage()
             "Favorites" -> showFavoritesPage()
             "Search" -> showSearch()
             "Settings" -> showSettings()
+        }
+        if (previousScrollY > 0) {
+            pageScroll.post {
+                val maxScrollY = (content.height - pageScroll.height).coerceAtLeast(0)
+                pageScroll.scrollTo(0, previousScrollY.coerceAtMost(maxScrollY))
+            }
         }
     }
 
@@ -129,6 +138,7 @@ class MainActivity : Activity() {
             ?.takeIf { it in listOf("All", "Entertainment", "Tools", "System") }
             ?: "All"
         searchQuery = savedInstanceState?.getString("search_query").orEmpty()
+        restoredScrollY = savedInstanceState?.getInt("page_scroll_y") ?: 0
         try {
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN or
             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
@@ -157,7 +167,7 @@ class MainActivity : Activity() {
                 intArrayOf(0xF20B0C10.toInt(), 0xEA201B18.toInt(), 0xE82D251C.toInt()))
                 .apply { cornerRadius = dp(26).toFloat(); setStroke(dp(1), 0x887F6A4A.toInt()) }
         }
-        val scroll = ScrollView(this).apply {
+        pageScroll = ScrollView(this).apply {
             isFillViewport = true
             // Keep focused cards and their scale animation inside the content viewport.
             // Without this, focus shadows can draw over the left navigation rail.
@@ -172,14 +182,21 @@ class MainActivity : Activity() {
             clipChildren = false
             clipToPadding = false
         }
-        scroll.addView(content)
+        pageScroll.addView(content)
         shell.addView(nav, LinearLayout.LayoutParams(dp(158), -1))
-        shell.addView(scroll, LinearLayout.LayoutParams(0, -1, 1f))
+        shell.addView(pageScroll, LinearLayout.LayoutParams(0, -1, 1f))
         root.addView(shell, FrameLayout.LayoutParams(-1, -1))
         setContentView(root)
 
         buildNav()
-        refreshSelectedPage()
+        refreshSelectedPage(preserveScroll = false)
+        if (restoredScrollY > 0) {
+            pageScroll.post {
+                val maxScrollY = (content.height - pageScroll.height).coerceAtLeast(0)
+                pageScroll.scrollTo(0, restoredScrollY.coerceAtMost(maxScrollY))
+                restoredScrollY = 0
+            }
+        }
         handler.post(clockTick)
         } catch (error: Exception) {
             handler.removeCallbacks(clockTick)
@@ -217,6 +234,7 @@ class MainActivity : Activity() {
         outState.putString("selected_page", selected)
         outState.putString("app_filter", appFilter)
         outState.putString("search_query", searchQuery)
+        if (::pageScroll.isInitialized) outState.putInt("page_scroll_y", pageScroll.scrollY)
         super.onSaveInstanceState(outState)
     }
 
@@ -339,6 +357,7 @@ class MainActivity : Activity() {
 
     private fun navigate(name: String) {
         selected = name
+        if (::pageScroll.isInitialized) pageScroll.scrollTo(0, 0)
         buildNav()
         when (name) {
             "Home" -> showHome()
@@ -1052,13 +1071,7 @@ class MainActivity : Activity() {
             "Manage hidden apps" to { manageHiddenApps() },
             "Refresh installed apps" to {
                 cachedLaunchableApps = null
-                when (selected) {
-                    "Home" -> showHome()
-                    "Apps", "Entertainment", "Tools" -> showAppsPage()
-                    "Favorites" -> showFavoritesPage()
-                    "Search" -> showSearch()
-                    else -> showSettings()
-                }
+                refreshSelectedPage()
                 toast("App list refreshed")
             },
             "Choose Home launcher" to { toast("Press the TV remote Home button and select Ziyana TV if your TV offers the choice.") },
