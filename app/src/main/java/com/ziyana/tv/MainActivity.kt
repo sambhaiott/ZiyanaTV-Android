@@ -125,9 +125,11 @@ class MainActivity : Activity() {
         refreshSelectedPage()
     }
     private val handler = Handler(Looper.getMainLooper())
+    private var isActivityResumed = false
     private val clockTick = object : Runnable {
         override fun run() {
-            if (::clock.isInitialized) clock.text = SimpleDateFormat("h:mm a  •  EEE, MMM d", Locale.getDefault()).format(Date())
+            if (!isActivityResumed || !::clock.isInitialized) return
+            clock.text = SimpleDateFormat("h:mm a  •  EEE, MMM d", Locale.getDefault()).format(Date())
             handler.postDelayed(this, 60_000)
         }
     }
@@ -204,7 +206,6 @@ class MainActivity : Activity() {
                 restoredScrollY = 0
             }
         }
-        handler.post(clockTick)
         } catch (error: Exception) {
             handler.removeCallbacks(clockTick)
             val detail = "${error.javaClass.simpleName}: ${error.message ?: "No details"}"
@@ -243,6 +244,14 @@ class MainActivity : Activity() {
         outState.putString("search_query", searchQuery)
         if (::pageScroll.isInitialized) outState.putInt("page_scroll_y", pageScroll.scrollY)
         super.onSaveInstanceState(outState)
+    }
+
+    override fun onPause() {
+        // The launcher clock is only visible while this Activity is in the foreground.
+        // Stop its minute timer when another TV app covers the launcher.
+        isActivityResumed = false
+        handler.removeCallbacks(clockTick)
+        super.onPause()
     }
 
     override fun onDestroy() {
@@ -880,6 +889,11 @@ class MainActivity : Activity() {
         } else {
             hasResumedOnce = true
         }
+        // Keep the clock current while visible, without waking the main thread in
+        // the background once per minute on low-memory Android TV devices.
+        isActivityResumed = true
+        handler.removeCallbacks(clockTick)
+        if (::clock.isInitialized) handler.post(clockTick)
     }
 
     @Suppress("DEPRECATION")
