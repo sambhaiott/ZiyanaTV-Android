@@ -59,6 +59,9 @@ class MainActivity : Activity() {
     private fun refreshSelectedPage(preserveScroll: Boolean = true) {
         if (!::content.isInitialized) return
         val previousScrollY = if (preserveScroll && ::pageScroll.isInitialized) pageScroll.scrollY else 0
+        // Keep the focused app/input stable when a page is rebuilt after returning
+        // from another app or changing a favorite/pin/visibility setting.
+        val previousFocusTag = if (preserveScroll) window.decorView.findFocus()?.tag as? String else null
         when (selected) {
             "Home" -> showHome()
             "Apps", "Entertainment", "Tools" -> showAppsPage()
@@ -66,8 +69,12 @@ class MainActivity : Activity() {
             "Search" -> showSearch()
             "Settings" -> showSettings()
         }
-        if (previousScrollY > 0) {
-            pageScroll.post {
+        pageScroll.post {
+            val focusTarget = previousFocusTag?.let { content.findViewWithTag<View>(it) }
+            if (focusTarget?.requestFocus() != true) {
+                nav.findViewWithTag<View>("nav:$selected")?.requestFocus()
+            }
+            if (previousScrollY > 0) {
                 val maxScrollY = (content.height - pageScroll.height).coerceAtLeast(0)
                 pageScroll.scrollTo(0, previousScrollY.coerceAtMost(maxScrollY))
             }
@@ -316,6 +323,7 @@ class MainActivity : Activity() {
         var selectedNavItem: View? = null
         items.forEach { (iconRes, name) ->
             val item = LinearLayout(this).apply {
+                tag = "nav:$name"
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(dp(13), 0, dp(5), 0)
@@ -580,6 +588,7 @@ class MainActivity : Activity() {
     // Large, authentic installed-app icons in an Apple TV-inspired horizontal app rail.
     private fun homeAppCard(info: android.content.pm.ResolveInfo): LinearLayout {
         val card = LinearLayout(this).apply {
+            tag = "app:${info.activityInfo.packageName}"
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
             background = glossySurface(0xE93B3D42.toInt(), 0xE916181C.toInt(), 22, 0x667D7769)
@@ -613,6 +622,7 @@ class MainActivity : Activity() {
 
     private fun appCard(info: android.content.pm.ResolveInfo): LinearLayout {
         val card = LinearLayout(this).apply {
+            tag = "app:${info.activityInfo.packageName}"
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
             background = glossySurface(0xFF393630.toInt(), 0xFF171513.toInt(), 17, 0x667D6749)
@@ -943,6 +953,7 @@ class MainActivity : Activity() {
     private fun showSearch() {
         clearPage("Search", "Find and launch any installed application")
         val input = EditText(this).apply {
+            tag = "search-input"
             hint = "Type an app name…"
             setSingleLine(true)
             textSize = 17f
@@ -971,6 +982,7 @@ class MainActivity : Activity() {
             if (found.isEmpty()) results.addView(label("No matching app found.", 14f, muted).apply { setPadding(0, dp(18), 0, 0) })
             else found.take(30).forEach { info ->
                 val line = LinearLayout(this).apply {
+                    tag = "app:${info.activityInfo.packageName}"
                     orientation = LinearLayout.HORIZONTAL
                     gravity = Gravity.CENTER_VERTICAL
                     isFocusable = true
