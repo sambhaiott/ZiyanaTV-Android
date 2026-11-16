@@ -70,13 +70,16 @@ class MainActivity : Activity() {
             "Settings" -> showSettings()
         }
         pageScroll.post {
-            val focusTarget = previousFocusTag?.let { content.findViewWithTag<View>(it) }
-            if (focusTarget?.requestFocus() != true) {
-                nav.findViewWithTag<View>("nav:$selected")?.requestFocus()
-            }
+            // Restore the previous viewport before requesting focus. Android may
+            // auto-scroll a focused child into view, so doing this in the opposite
+            // order could immediately hide the item we just focused.
             if (previousScrollY > 0) {
                 val maxScrollY = (content.height - pageScroll.height).coerceAtLeast(0)
                 pageScroll.scrollTo(0, previousScrollY.coerceAtMost(maxScrollY))
+            }
+            val focusTarget = previousFocusTag?.let { content.findViewWithTag<View>(it) }
+            if (focusTarget?.requestFocus() != true) {
+                nav.findViewWithTag<View>("nav:$selected")?.requestFocus()
             }
         }
     }
