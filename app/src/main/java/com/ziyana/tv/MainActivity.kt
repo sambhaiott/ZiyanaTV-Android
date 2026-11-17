@@ -802,7 +802,11 @@ class MainActivity : Activity() {
     }
 
     private fun showAppsPage() {
-        clearPage("Applications  ·  ${sortedApps().size}", "Choose a category or open any installed app")
+        // Build the sorted PackageManager-backed app snapshot once per drawer render.
+        // Re-sorting it for both the count and filtered grid repeats label lookups
+        // unnecessarily on low-memory Android TV devices.
+        val allApps = sortedApps()
+        clearPage("Applications  ·  ${allApps.size}", "Choose a category or open any installed app")
         val filters = listOf("All", "Entertainment", "Tools", "System")
         val filterRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         filters.forEach { filter ->
@@ -812,7 +816,7 @@ class MainActivity : Activity() {
             }, LinearLayout.LayoutParams(dp(120), dp(40)).apply { marginEnd = dp(9) })
         }
         content.addView(filterRow, LinearLayout.LayoutParams(-1, dp(52)).apply { topMargin = dp(12) })
-        val apps = sortedApps().filter { matchesFilter(it, appFilter) }
+        val apps = allApps.filter { matchesFilter(it, appFilter) }
         heading(if (appFilter == "All") "All applications" else appFilter)
         if (apps.isEmpty()) {
             content.addView(label("No apps found in this category.", 14f, muted))
