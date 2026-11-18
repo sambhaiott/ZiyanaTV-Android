@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
 import android.speech.RecognizerIntent
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -137,6 +138,24 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun decodeWallpaperForScreen(): android.graphics.Bitmap? {
+        val resourceId = R.drawable.anime_sakura_wallpaper_hd
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeResource(resources, resourceId, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+
+        val targetWidth = resources.displayMetrics.widthPixels.coerceAtLeast(1)
+        val targetHeight = resources.displayMetrics.heightPixels.coerceAtLeast(1)
+        var sampleSize = 1
+        while (bounds.outWidth / (sampleSize * 2) >= targetWidth &&
+            bounds.outHeight / (sampleSize * 2) >= targetHeight) {
+            sampleSize *= 2
+        }
+
+        return BitmapFactory.decodeResource(resources, resourceId,
+            BitmapFactory.Options().apply { inSampleSize = sampleSize })
+    }
+
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -157,7 +176,11 @@ class MainActivity : Activity() {
 
         val root = FrameLayout(this)
         val wallpaper = ImageView(this).apply {
-            setImageResource(R.drawable.anime_sakura_wallpaper_hd)
+            // Decode the full-screen artwork no larger than the TV's display when
+            // possible. This avoids retaining an oversized source bitmap on 2 GB TVs.
+            val screenSizedBitmap = decodeWallpaperForScreen()
+            if (screenSizedBitmap != null) setImageBitmap(screenSizedBitmap)
+            else setImageResource(R.drawable.anime_sakura_wallpaper_hd)
             scaleType = ImageView.ScaleType.CENTER_CROP
             contentDescription = "Ziyana TV night theme background"
         }
