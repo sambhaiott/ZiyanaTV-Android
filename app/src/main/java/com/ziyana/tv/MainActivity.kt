@@ -880,10 +880,16 @@ class MainActivity : Activity() {
         val pkg = info.activityInfo.packageName.lowercase(Locale.getDefault())
         val media = listOf("youtube", "netflix", "prime", "video", "disney", "crunchy", "plex", "tubi", "jellyfin", "spotify", "music", "iptv", "tv", "movie", "media")
         val system = listOf("settings", "launcher", "system", "update", "input", "remote", "cast")
+        val isSystemApp = system.any { name.contains(it) || pkg.contains(it) }
+        val isMediaApp = media.any { name.contains(it) || pkg.contains(it) }
+
+        // Android TV system packages often contain "tv" in their package name.
+        // Give explicit system markers priority so settings/launcher services do
+        // not also appear in the Entertainment category.
         return when (filter) {
-            "Entertainment" -> media.any { name.contains(it) || pkg.contains(it) }
-            "System" -> system.any { name.contains(it) || pkg.contains(it) }
-            "Tools" -> !media.any { name.contains(it) || pkg.contains(it) } && !system.any { name.contains(it) || pkg.contains(it) }
+            "Entertainment" -> isMediaApp && !isSystemApp
+            "System" -> isSystemApp
+            "Tools" -> !isMediaApp && !isSystemApp
             else -> true
         }
     }
