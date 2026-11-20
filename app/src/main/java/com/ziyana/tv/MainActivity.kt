@@ -1026,13 +1026,19 @@ class MainActivity : Activity() {
         }
         val results = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         content.addView(results, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(14) })
+        // Resolve and sort app labels once when the Search page is built. Repeating
+        // PackageManager label lookups and sorting for every typed character makes
+        // remote search needlessly expensive on low-memory Android TV devices.
+        val visibleApps = sortedApps().map { info ->
+            info to info.loadLabel(packageManager).toString()
+        }
         fun render(query: String) {
             results.removeAllViews()
-            val visibleApps = sortedApps()
-            val found = visibleApps.filter { it.loadLabel(packageManager).toString().contains(query.trim(), true) }
+            val normalizedQuery = query.trim()
+            val found = visibleApps.filter { (_, appLabel) -> appLabel.contains(normalizedQuery, true) }
             results.addView(label(if (query.isBlank()) "${visibleApps.size} visible apps" else "${found.size} results", 12f, muted))
             if (found.isEmpty()) results.addView(label("No matching app found.", 14f, muted).apply { setPadding(0, dp(18), 0, 0) })
-            else found.take(30).forEach { info ->
+            else found.take(30).forEach { (info, appLabel) ->
                 val line = LinearLayout(this).apply {
                     tag = "app:${info.activityInfo.packageName}"
                     orientation = LinearLayout.HORIZONTAL
@@ -1042,7 +1048,7 @@ class MainActivity : Activity() {
                     background = panel(0x9940392E.toInt(), 13, 0x668B7655.toInt())
                     val icon = ImageView(this@MainActivity).apply { setImageDrawable(info.loadIcon(packageManager)) }
                     addView(icon, LinearLayout.LayoutParams(dp(36), dp(36)).apply { marginEnd = dp(14) })
-                    addView(label(info.loadLabel(packageManager).toString(), 14f, Color.WHITE, true), LinearLayout.LayoutParams(0, -1, 1f))
+                    addView(label(appLabel, 14f, Color.WHITE, true), LinearLayout.LayoutParams(0, -1, 1f))
                     setOnClickListener { launchActivity(info) }
                     focusStyle(this, 13, 0x9940392E.toInt(), 0xFF806747.toInt())
                 }
