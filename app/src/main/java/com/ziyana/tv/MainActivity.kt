@@ -878,10 +878,12 @@ class MainActivity : Activity() {
         if (filter == "All") return true
         val name = info.loadLabel(packageManager).toString().lowercase(Locale.getDefault())
         val pkg = info.activityInfo.packageName.lowercase(Locale.getDefault())
-        val media = listOf("youtube", "netflix", "prime", "video", "disney", "crunchy", "plex", "tubi", "jellyfin", "spotify", "music", "iptv", "tv", "movie", "media")
+        val media = listOf("youtube", "netflix", "prime", "video", "disney", "crunchy", "plex", "tubi", "jellyfin", "spotify", "music", "iptv", "movie", "media")
         val system = listOf("settings", "launcher", "system", "update", "input", "remote", "cast")
         val isSystemApp = system.any { name.contains(it) || pkg.contains(it) }
-        val isMediaApp = media.any { name.contains(it) || pkg.contains(it) }
+        // Match "TV" as a standalone label/package segment, not inside arbitrary words.
+        val isTvApp = name.split(Regex("[^a-z0-9]+")).contains("tv") || pkg.split('.').contains("tv")
+        val isMediaApp = media.any { name.contains(it) || pkg.contains(it) } || isTvApp
 
         // Android TV system packages often contain "tv" in their package name.
         // Give explicit system markers priority so settings/launcher services do
