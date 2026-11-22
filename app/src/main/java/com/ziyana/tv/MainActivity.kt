@@ -699,6 +699,7 @@ class MainActivity : Activity() {
 
     private fun showFavoritesPage() {
         content.removeAllViews()
+        addStatusHeader()
         val apps = sortedApps().filter { it.activityInfo.packageName in favorites() }
             .sortedBy { it.loadLabel(packageManager).toString().lowercase(Locale.getDefault()) }
         content.addView(label("Favorites", 27f, Color.WHITE, true).apply { setPadding(0, dp(8), 0, dp(4)) })
