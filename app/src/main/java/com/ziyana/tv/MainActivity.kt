@@ -826,6 +826,9 @@ class MainActivity : Activity() {
     }
 
     private fun showAppsPage() {
+        // Keep D-pad focus on the category row when rebuilding after a filter change.
+        val previousFilterFocus = (window.decorView.findFocus()?.tag as? String)
+            ?.takeIf { it.startsWith("filter:") }
         // Build the sorted PackageManager-backed app snapshot once per drawer render.
         // Re-sorting it for both the count and filtered grid repeats label lookups
         // unnecessarily on low-memory Android TV devices.
@@ -834,12 +837,17 @@ class MainActivity : Activity() {
         val filters = listOf("All", "Entertainment", "Tools", "System")
         val filterRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         filters.forEach { filter ->
-            filterRow.addView(actionButton(filter, appFilter == filter) {
+            val button = actionButton(filter, appFilter == filter) {
                 appFilter = filter
                 showAppsPage()
-            }, LinearLayout.LayoutParams(dp(120), dp(40)).apply { marginEnd = dp(9) })
+            }.apply { tag = "filter:$filter" }
+            filterRow.addView(button, LinearLayout.LayoutParams(dp(120), dp(40))
+                .apply { marginEnd = dp(9) })
         }
         content.addView(filterRow, LinearLayout.LayoutParams(-1, dp(52)).apply { topMargin = dp(12) })
+        if (previousFilterFocus != null) {
+            filterRow.findViewWithTag<View>("filter:$appFilter")?.requestFocus()
+        }
         val apps = allApps.filter { matchesFilter(it, appFilter) }
         heading(if (appFilter == "All") "All applications" else appFilter)
         if (apps.isEmpty()) {
