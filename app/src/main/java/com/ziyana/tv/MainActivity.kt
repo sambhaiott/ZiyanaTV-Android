@@ -1039,15 +1039,17 @@ class MainActivity : Activity() {
         // PackageManager label lookups and sorting for every typed character makes
         // remote search needlessly expensive on low-memory Android TV devices.
         val visibleApps = sortedApps().map { info ->
-            info to info.loadLabel(packageManager).toString()
+            Triple(info, info.loadLabel(packageManager).toString(), info.activityInfo.packageName)
         }
         fun render(query: String) {
             results.removeAllViews()
             val normalizedQuery = query.trim()
-            val found = visibleApps.filter { (_, appLabel) -> appLabel.contains(normalizedQuery, true) }
+            val found = visibleApps.filter { (_, appLabel, packageName) ->
+                appLabel.contains(normalizedQuery, true) || packageName.contains(normalizedQuery, true)
+            }
             results.addView(label(if (query.isBlank()) "${visibleApps.size} visible apps" else "${found.size} results", 12f, muted))
             if (found.isEmpty()) results.addView(label("No matching app found.", 14f, muted).apply { setPadding(0, dp(18), 0, 0) })
-            else found.take(30).forEach { (info, appLabel) ->
+            else found.take(30).forEach { (info, appLabel, _) ->
                 val line = LinearLayout(this).apply {
                     tag = "app:${info.activityInfo.packageName}"
                     orientation = LinearLayout.HORIZONTAL
